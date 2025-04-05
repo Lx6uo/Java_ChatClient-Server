@@ -474,6 +474,74 @@ public class Client {
         }
     }
 
+    // 处理文件传输
+    private void sendFile(String action, Object... params) {
+        if (action.equals("REQUEST")) {
+            // 发送文件请求
+            if (!currentChatMode.equals("PRIVATE")) {
+                JOptionPane.showMessageDialog(frame, "只能在私聊中发送文件！");
+                return;
+            }
+
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+
+            File selectedFile = fileChooser.getSelectedFile();
+            String filename = selectedFile.getName();
+            long filesize = selectedFile.length();
+
+            // 发送文件传输请求
+            out.println("FILE_REQUEST:" + currentChatTarget + ":" + filename + ":" + filesize);
+
+            // 保存文件信息，等待对方接受
+            pendingFileTransfers.put(filename, new FileTransferInfo(selectedFile, currentChatTarget));
+
+            chatArea.append("系统: 已向 " + currentChatTarget + " 发送文件传输请求: " + filename + " (" + filesize + " 字节)\n");
+        } else if (action.equals("SEND")) {
+            // 发送文件数据
+            String receiver = (String) params[0];
+            String filename = (String) params[1];
+            String receiverIP = (String) params[2];
+            int receiverPort = (Integer) params[3];
+            
+            FileTransferInfo fileInfo = pendingFileTransfers.get(filename);
+            if (fileInfo == null) return;
+
+            try {
+                File file = fileInfo.file;
+                chatArea.append("系统: 正在发送文件: " + filename + " 给 " + receiver + "\n");
+
+                // 创建专用于文件传输的Socket连接
+                Socket fileSocket = new Socket(receiverIP, receiverPort);
+                BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
+                DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(fileSocket.getOutputStream()));
+
+                // 发送文件大小
+                dataOut.writeLong(file.length());
+
+                // 发送文件内容
+                byte[] buffer = new byte[8192]; // 增大缓冲区大小
+                int bytesRead;
+
+                while ((bytesRead = fileIn.read(buffer)) != -1) {
+                    dataOut.write(buffer, 0, bytesRead);
+                }
+
+                dataOut.flush();
+                fileIn.close();
+                dataOut.close();
+                fileSocket.close();
+
+                chatArea.append("系统: 文件发送完成: " + filename + "\n");
+                pendingFileTransfers.remove(filename);
+
+            } catch (Exception e) {
+                chatArea.append("系统: 文件发送失败: " + e.getMessage() + "\n");
+                e.printStackTrace();
+            }
+        }
+    }
+
     // 处理文件传输请求
     private void handleFileRequest(String sender, String filename, long filesize) {
         int option = JOptionPane.showConfirmDialog(
@@ -547,74 +615,6 @@ public class Client {
         } catch (Exception e) {
             chatArea.append("系统: 文件接收失败: " + e.getMessage() + "\n");
             e.printStackTrace();
-        }
-    }
-
-    // 处理文件传输（合并了文件信息发送和文件数据发送）
-    private void sendFile(String action, Object... params) {
-        if (action.equals("REQUEST")) {
-            // 发送文件请求
-            if (!currentChatMode.equals("PRIVATE")) {
-                JOptionPane.showMessageDialog(frame, "只能在私聊中发送文件！");
-                return;
-            }
-
-            JFileChooser fileChooser = new JFileChooser();
-            if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
-
-            File selectedFile = fileChooser.getSelectedFile();
-            String filename = selectedFile.getName();
-            long filesize = selectedFile.length();
-
-            // 发送文件传输请求
-            out.println("FILE_REQUEST:" + currentChatTarget + ":" + filename + ":" + filesize);
-
-            // 保存文件信息，等待对方接受
-            pendingFileTransfers.put(filename, new FileTransferInfo(selectedFile, currentChatTarget));
-
-            chatArea.append("系统: 已向 " + currentChatTarget + " 发送文件传输请求: " + filename + " (" + filesize + " 字节)\n");
-        } else if (action.equals("SEND")) {
-            // 发送文件数据
-            String receiver = (String) params[0];
-            String filename = (String) params[1];
-            String receiverIP = (String) params[2];
-            int receiverPort = (Integer) params[3];
-            
-            FileTransferInfo fileInfo = pendingFileTransfers.get(filename);
-            if (fileInfo == null) return;
-
-            try {
-                File file = fileInfo.file;
-                chatArea.append("系统: 正在发送文件: " + filename + " 给 " + receiver + "\n");
-
-                // 创建专用于文件传输的Socket连接
-                Socket fileSocket = new Socket(receiverIP, receiverPort);
-                BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
-                DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(fileSocket.getOutputStream()));
-
-                // 发送文件大小
-                dataOut.writeLong(file.length());
-
-                // 发送文件内容
-                byte[] buffer = new byte[8192]; // 增大缓冲区大小
-                int bytesRead;
-
-                while ((bytesRead = fileIn.read(buffer)) != -1) {
-                    dataOut.write(buffer, 0, bytesRead);
-                }
-
-                dataOut.flush();
-                fileIn.close();
-                dataOut.close();
-                fileSocket.close();
-
-                chatArea.append("系统: 文件发送完成: " + filename + "\n");
-                pendingFileTransfers.remove(filename);
-
-            } catch (Exception e) {
-                chatArea.append("系统: 文件发送失败: " + e.getMessage() + "\n");
-                e.printStackTrace();
-            }
         }
     }
 }

@@ -66,3 +66,10 @@ Then, RUN multiple Client.jave to operate with graphic interface.
 3. **图形界面**
    - 使用Swing库构建图形界面
    - 支持用户交互和消息显示
+
+## UPDATE
+1. **ver1.1**
+
+   - 优化代码结构
+   - 优化ui
+   - 修复第二个客户端无法登录的bug 

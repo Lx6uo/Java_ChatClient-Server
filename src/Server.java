@@ -73,19 +73,33 @@ public class Server {
 
         // 处理用户登录
         private void handleLogin() throws IOException {
-            while (true) {
+            // 先检查客户端是否已经发送了登录信息
+            String firstMessage = in.readLine();
+            
+            if (firstMessage != null && firstMessage.startsWith("LOGIN:")) {
+                // 客户端主动发送了登录信息
+                clientName = firstMessage.substring("LOGIN:".length());
+            } else {
+                // 使用原来的登录流程
                 out.println("LOGIN_REQUEST");
-                clientName = in.readLine();
+                if (firstMessage != null) {
+                    clientName = firstMessage;
+                } else {
+                    clientName = in.readLine();
+                }
+            }
 
-                synchronized (clientWriters) {
-                    if (clientWriters.containsKey(clientName)) {
-                        out.println("LOGIN_FAILED:用户名已被使用，请重新选择一个用户名！");
-                    } else {
-                        out.println("LOGIN_SUCCESS");
-                        clientWriters.put(clientName, out);
-                        clientSockets.put(clientName, socket);
-                        return;
-                    }
+            // 检查用户名是否已被使用
+            synchronized (clientWriters) {
+                if (clientWriters.containsKey(clientName)) {
+                    out.println("LOGIN_FAILED:用户名已被使用，请重新选择一个用户名！");
+                    // 重新启动登录流程
+                    handleLogin();
+                    return;
+                } else {
+                    out.println("LOGIN_SUCCESS");
+                    clientWriters.put(clientName, out);
+                    clientSockets.put(clientName, socket);
                 }
             }
         }

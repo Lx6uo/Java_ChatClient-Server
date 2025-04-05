@@ -8,7 +8,7 @@ import javax.swing.*;
 
 /**
  * @author Lx
- * @version 1.0.0
+ * @version 1.1
  * @since 2025-04-05
  */
 
@@ -76,17 +76,16 @@ public class Client {
         LoginPanel();
     }
 
-    // 显示登录对话框
+    // 登录对话框
     private void LoginPanel() {
         JDialog loginDialog = new JDialog(frame, "登录", true);
-        loginDialog.setSize(200, 180);
+        loginDialog.setSize(200, 160);
         
-        // 使用BorderLayout替代GridLayout
         loginDialog.setLayout(new BorderLayout(10, 10));
         
         // 创建输入面板
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
             
         JTextField serverField = new JTextField(serverAddress);
         JTextField usernameField = new JTextField();
@@ -114,7 +113,7 @@ public class Client {
         // 创建按钮面板并居中
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(loginButton);
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
         // 将面板添加到对话框
         loginDialog.add(inputPanel, BorderLayout.CENTER);
@@ -124,7 +123,7 @@ public class Client {
         loginDialog.setVisible(true);
     }
 
-    // 创建面板
+    // 创建主聊天面板
     private JPanel MainPanel(String panelType) {
         if (panelType.equals("right")) {
             // 创建右侧面板
@@ -139,7 +138,7 @@ public class Client {
                     if (e.getClickCount() == 1) {
                         String selectedUser = userList.getSelectedValue();
                         if (selectedUser != null && !selectedUser.equals(username)) {
-                            switchToChatMode("PRIVATE", selectedUser);
+                            switchChatMode("PRIVATE", selectedUser);
                         }
                     }
                 }
@@ -154,7 +153,7 @@ public class Client {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (e.getClickCount() == 1 && groupList.getSelectedValue() != null) {
-                        switchToChatMode("GROUP", groupList.getSelectedValue());
+                        switchChatMode("GROUP", groupList.getSelectedValue());
                     }
                 }
             });
@@ -163,7 +162,7 @@ public class Client {
 
             // 创建创建群组按钮
             JButton createGroupButton = new JButton("创建群组");
-            createGroupButton.addActionListener(e -> showCreateGroupDialog());
+            createGroupButton.addActionListener(e -> createGroupPanel());
             JPanel createGroupPanel = new JPanel(new BorderLayout());
             createGroupPanel.add(groupScrollPane, BorderLayout.CENTER);
             createGroupPanel.add(createGroupButton, BorderLayout.SOUTH);
@@ -172,7 +171,7 @@ public class Client {
             // 创建公共聊天按钮面板
             JPanel publicChatPanel = new JPanel(new BorderLayout());
             JButton publicChatButton = new JButton("公共广播");
-            publicChatButton.addActionListener(e -> switchToChatMode("PUBLIC", ""));
+            publicChatButton.addActionListener(e -> switchChatMode("PUBLIC", ""));
             publicChatPanel.add(publicChatButton, BorderLayout.CENTER);
             publicChatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -185,7 +184,7 @@ public class Client {
             // 设置选项卡切换事件
             rightPanel.addChangeListener(e -> {
                 if (rightPanel.getSelectedIndex() == 1) { // 公共聊天选项卡
-                    switchToChatMode("PUBLIC", "");
+                    switchChatMode("PUBLIC", "");
                 }
             });
 
@@ -208,7 +207,7 @@ public class Client {
             sendButton = new JButton("发送");
             sendButton.addActionListener(e -> sendMessage());
             fileButton = new JButton("发送文件");
-            fileButton.addActionListener(e -> sendFile());
+            fileButton.addActionListener(e -> sendFile("REQUEST"));
             fileButton.setEnabled(false); // 初始禁用，只有私聊时才启用
 
             // 组装按钮面板
@@ -235,6 +234,9 @@ public class Client {
             objectOut.flush(); // 确保对象头信息被写入
             objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream(), 8192));
 
+            // 主动发送用户名到服务器
+            out.println("LOGIN:" + username);
+
             // 启动接收消息的线程
             new Thread(new IncomingReader()).start();
 
@@ -245,34 +247,6 @@ public class Client {
             JOptionPane.showMessageDialog(frame, "无法连接到服务器: " + e.getMessage());
             System.exit(1);
         }
-    }
-
-    // 切换聊天模式
-    private void switchToChatMode(String mode, String target) {
-        currentChatMode = mode;
-        currentChatTarget = target;
-
-        // 更新窗口标题和文件按钮状态
-        String titleSuffix;
-        boolean enableFileButton = false;
-
-        if (mode.equals("PUBLIC")) {
-            titleSuffix = " - 公共聊天";
-        } else if (mode.equals("PRIVATE")) {
-            titleSuffix = " - 私聊: " + target;
-            enableFileButton = true;
-        } else { // GROUP
-            titleSuffix = " - 群聊: " + target;
-        }
-
-        frame.setTitle("聊天客户端 - " + username + " (" + serverAddress + ":" + port + ")" + titleSuffix);
-        fileButton.setEnabled(enableFileButton);
-
-        // 提示当前聊天模式
-        String modeText = mode.equals("PUBLIC") ? "公共聊天" :
-                mode.equals("PRIVATE") ? "与 " + target + " 的私聊" :
-                        "群组 " + target + " 聊天";
-        chatArea.append("系统: 已切换到" + modeText + "\n");
     }
 
     // 发送消息
@@ -290,31 +264,27 @@ public class Client {
         messageField.setText("");
     }
 
-    // 发送文件
-    private void sendFile() {
-        if (!currentChatMode.equals("PRIVATE")) {
-            JOptionPane.showMessageDialog(frame, "只能在私聊中发送文件！");
-            return;
-        }
+    // 切换聊天模式
+    private void switchChatMode(String mode, String target) {
+        currentChatMode = mode;
+        currentChatTarget = target;
+        boolean enableFileButton = false;
 
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
+        // 更新文件按钮状态
+        if (mode.equals("PRIVATE")) {
+            enableFileButton = true;
+        } 
+        fileButton.setEnabled(enableFileButton);
 
-        File selectedFile = fileChooser.getSelectedFile();
-        String filename = selectedFile.getName();
-        long filesize = selectedFile.length();
-
-        // 发送文件传输请求
-        out.println("FILE_REQUEST:" + currentChatTarget + ":" + filename + ":" + filesize);
-
-        // 保存文件信息，等待对方接受
-        pendingFileTransfers.put(filename, new FileTransferInfo(selectedFile, currentChatTarget));
-
-        chatArea.append("系统: 已向 " + currentChatTarget + " 发送文件传输请求: " + filename + " (" + filesize + " 字节)\n");
+        // 提示当前聊天模式
+        String modeText = mode.equals("PUBLIC") ? "公共聊天" :
+                mode.equals("PRIVATE") ? "与 " + target + " 的私聊" :
+                        "群组 " + target + " 聊天";
+        chatArea.append("系统: 已切换到" + modeText + "\n");
     }
 
-    // 显示创建群组对话框
-    private void showCreateGroupDialog() {
+    // 显示创建群组窗口
+    private void createGroupPanel() {
         JDialog dialog = new JDialog(frame, "创建群组", true);
         dialog.setSize(300, 400);
         dialog.setLayout(new BorderLayout());
@@ -371,6 +341,137 @@ public class Client {
 
         dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
+    }
+
+    // 接收服务器消息的线程
+    private class IncomingReader implements Runnable {
+        @Override
+        public void run() {
+            try {
+                String message;
+                while ((message = in.readLine()) != null) {
+                    processServerMessage(message);
+                }
+            } catch (IOException e) {
+                chatArea.append("系统: 与服务器的连接已断开: " + e.getMessage() + "\n");
+            }
+        }
+
+        // 处理服务器消息
+        private void processServerMessage(String message) throws IOException {
+            if (message.startsWith("LOGIN_REQUEST")) {
+                out.println("LOGIN:" + username);  // 修改为统一的登录消息格式
+            } else if (message.startsWith("LOGIN_FAILED:")) {
+                String errorMsg = message.substring("LOGIN_FAILED:".length());
+                JOptionPane.showMessageDialog(frame, errorMsg);
+                socket.close();
+                System.exit(1);
+            } else if (message.startsWith("LOGIN_SUCCESS")) {
+                chatArea.append("系统: 登录成功！\n");
+            } else if (message.startsWith("USER_LIST:")) {
+                updateList("USER", message.substring("USER_LIST:".length()));
+            } else if (message.startsWith("GROUP_LIST:")) {
+                updateList("GROUP", message.substring("GROUP_LIST:".length()));
+            } else if (message.startsWith("BROADCAST:")) {
+                String[] parts = message.split(":", 3);
+                if (parts.length == 3) {
+                    chatArea.append("[公共] " + parts[1] + ": " + parts[2] + "\n");
+                }
+            } else if (message.startsWith("PRIVATE:")) {
+                String[] parts = message.split(":", 3);
+                if (parts.length == 3) {
+                    chatArea.append("[私聊] " + parts[1] + ": " + parts[2] + "\n");
+                }
+            } else if (message.startsWith("PRIVATE_SENT:")) {
+                String[] parts = message.split(":", 3);
+                if (parts.length == 3) {
+                    chatArea.append("[私聊] 我 -> " + parts[1] + ": " + parts[2] + "\n");
+                }
+            } else if (message.startsWith("GROUP:")) {
+                String[] parts = message.split(":", 4);
+                if (parts.length == 4) {
+                    chatArea.append("[群聊:" + parts[1] + "] " + parts[2] + ": " + parts[3] + "\n");
+                }
+            } else if (message.startsWith("SYSTEM:")) {
+                chatArea.append(message.substring("SYSTEM:".length()) + "\n");
+            } else if (message.startsWith("FILE_REQUEST:")) {
+                String[] parts = message.split(":", 4);
+                if (parts.length == 4) {
+                    handleFileRequest(parts[1], parts[2], Long.parseLong(parts[3]));
+                }
+            } else if (message.startsWith("FILE_ACCEPT:")) {
+                String[] parts = message.split(":", 3);
+                if (parts.length == 3) {
+                    chatArea.append("系统: " + parts[1] + " 已接受文件传输: " + parts[2] + "\n");
+                }
+            } else if (message.startsWith("FILE_REJECT:")) {
+                String[] parts = message.split(":", 3);
+                if (parts.length == 3) {
+                    chatArea.append("系统: " + parts[1] + " 已拒绝文件传输: " + parts[2] + "\n");
+                    pendingFileTransfers.remove(parts[2]);
+                }
+            } else if (message.startsWith("FILE_TRANSFER_START:")) {
+                String[] parts = message.split(":", 5);
+                if (parts.length == 5) {
+                    sendFile("SEND", parts[1], parts[2], parts[3], Integer.parseInt(parts[4]));
+                }
+            } else if (message.startsWith("FILE_READY:")) {
+                String[] parts = message.split(":", 4);
+                if (parts.length == 4) {
+                    // 通知服务器开始传输
+                    out.println("FILE_TRANSFER_START:" + parts[1] + ":" + parts[2] + ":" + parts[3]);
+                }
+            }
+        }
+    }
+
+    // 更新用户和群列表
+    private void updateList(String listType, String listStr) {
+        if (listType.equals("USER")) {
+            // 更新用户列表
+            userListModel.clear();
+            String[] users = listStr.split(",");
+            for (String user : users) {
+                if (!user.isEmpty() && !user.equals(username)) {
+                    userListModel.addElement(user);
+                }
+            }
+        } else if (listType.equals("GROUP")) {
+            // 更新群组列表
+            groupListModel.clear();
+            if (listStr.isEmpty()) return;
+
+            String[] groups = listStr.split(";");
+            for (String group : groups) {
+                if (group.isEmpty()) continue;
+
+                String[] parts = group.split(":", 2);
+                if (parts.length <= 0 || parts[0].isEmpty()) continue;
+
+                // 检查群组成员信息
+                if (parts.length > 1) {
+                    String[] members = parts[1].split(",");
+                    // 只添加当前用户是成员的群组
+                    for (String member : members) {
+                        if (member.trim().equals(username)) {
+                            groupListModel.addElement(parts[0]);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 文件传输信息类
+    private class FileTransferInfo {
+        File file;
+        String receiver;
+
+        public FileTransferInfo(File file, String receiver) {
+            this.file = file;
+            this.receiver = receiver;
+        }
     }
 
     // 处理文件传输请求
@@ -449,172 +550,71 @@ public class Client {
         }
     }
 
-    // 发送文件
-    private void sendFileData(String receiver, String filename, String receiverIP, int receiverPort) {
-        FileTransferInfo fileInfo = pendingFileTransfers.get(filename);
-        if (fileInfo == null) return;
-
-        try {
-            File file = fileInfo.file;
-            chatArea.append("系统: 正在发送文件: " + filename + " 给 " + receiver + "\n");
-
-            // 创建专用于文件传输的Socket连接
-            Socket fileSocket = new Socket(receiverIP, receiverPort);
-            BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
-            DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(fileSocket.getOutputStream()));
-
-            // 发送文件大小
-            dataOut.writeLong(file.length());
-
-            // 发送文件内容
-            byte[] buffer = new byte[8192]; // 增大缓冲区大小
-            int bytesRead;
-
-            while ((bytesRead = fileIn.read(buffer)) != -1) {
-                dataOut.write(buffer, 0, bytesRead);
+    // 处理文件传输（合并了文件信息发送和文件数据发送）
+    private void sendFile(String action, Object... params) {
+        if (action.equals("REQUEST")) {
+            // 发送文件请求
+            if (!currentChatMode.equals("PRIVATE")) {
+                JOptionPane.showMessageDialog(frame, "只能在私聊中发送文件！");
+                return;
             }
 
-            dataOut.flush();
-            fileIn.close();
-            dataOut.close();
-            fileSocket.close();
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) return;
 
-            chatArea.append("系统: 文件发送完成: " + filename + "\n");
-            pendingFileTransfers.remove(filename);
+            File selectedFile = fileChooser.getSelectedFile();
+            String filename = selectedFile.getName();
+            long filesize = selectedFile.length();
 
-        } catch (Exception e) {
-            chatArea.append("系统: 文件发送失败: " + e.getMessage() + "\n");
-            e.printStackTrace();
-        }
-    }
+            // 发送文件传输请求
+            out.println("FILE_REQUEST:" + currentChatTarget + ":" + filename + ":" + filesize);
 
-    // 接收服务器消息的线程
-    private class IncomingReader implements Runnable {
-        @Override
-        public void run() {
+            // 保存文件信息，等待对方接受
+            pendingFileTransfers.put(filename, new FileTransferInfo(selectedFile, currentChatTarget));
+
+            chatArea.append("系统: 已向 " + currentChatTarget + " 发送文件传输请求: " + filename + " (" + filesize + " 字节)\n");
+        } else if (action.equals("SEND")) {
+            // 发送文件数据
+            String receiver = (String) params[0];
+            String filename = (String) params[1];
+            String receiverIP = (String) params[2];
+            int receiverPort = (Integer) params[3];
+            
+            FileTransferInfo fileInfo = pendingFileTransfers.get(filename);
+            if (fileInfo == null) return;
+
             try {
-                String message;
-                while ((message = in.readLine()) != null) {
-                    processServerMessage(message);
+                File file = fileInfo.file;
+                chatArea.append("系统: 正在发送文件: " + filename + " 给 " + receiver + "\n");
+
+                // 创建专用于文件传输的Socket连接
+                Socket fileSocket = new Socket(receiverIP, receiverPort);
+                BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
+                DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(fileSocket.getOutputStream()));
+
+                // 发送文件大小
+                dataOut.writeLong(file.length());
+
+                // 发送文件内容
+                byte[] buffer = new byte[8192]; // 增大缓冲区大小
+                int bytesRead;
+
+                while ((bytesRead = fileIn.read(buffer)) != -1) {
+                    dataOut.write(buffer, 0, bytesRead);
                 }
-            } catch (IOException e) {
-                chatArea.append("系统: 与服务器的连接已断开: " + e.getMessage() + "\n");
+
+                dataOut.flush();
+                fileIn.close();
+                dataOut.close();
+                fileSocket.close();
+
+                chatArea.append("系统: 文件发送完成: " + filename + "\n");
+                pendingFileTransfers.remove(filename);
+
+            } catch (Exception e) {
+                chatArea.append("系统: 文件发送失败: " + e.getMessage() + "\n");
+                e.printStackTrace();
             }
-        }
-
-        // 处理服务器消息
-        private void processServerMessage(String message) throws IOException {
-            if (message.startsWith("LOGIN_REQUEST")) {
-                out.println(username);
-            } else if (message.startsWith("LOGIN_FAILED:")) {
-                String errorMsg = message.substring("LOGIN_FAILED:".length());
-                JOptionPane.showMessageDialog(frame, errorMsg);
-                socket.close();
-                System.exit(1);
-            } else if (message.startsWith("LOGIN_SUCCESS")) {
-                chatArea.append("系统: 登录成功！\n");
-            } else if (message.startsWith("USER_LIST:")) {
-                updateUserList(message.substring("USER_LIST:".length()));
-            } else if (message.startsWith("GROUP_LIST:")) {
-                updateGroupList(message.substring("GROUP_LIST:".length()));
-            } else if (message.startsWith("BROADCAST:")) {
-                String[] parts = message.split(":", 3);
-                if (parts.length == 3) {
-                    chatArea.append("[公共] " + parts[1] + ": " + parts[2] + "\n");
-                }
-            } else if (message.startsWith("PRIVATE:")) {
-                String[] parts = message.split(":", 3);
-                if (parts.length == 3) {
-                    chatArea.append("[私聊] " + parts[1] + ": " + parts[2] + "\n");
-                }
-            } else if (message.startsWith("PRIVATE_SENT:")) {
-                String[] parts = message.split(":", 3);
-                if (parts.length == 3) {
-                    chatArea.append("[私聊] 我 -> " + parts[1] + ": " + parts[2] + "\n");
-                }
-            } else if (message.startsWith("GROUP:")) {
-                String[] parts = message.split(":", 4);
-                if (parts.length == 4) {
-                    chatArea.append("[群聊:" + parts[1] + "] " + parts[2] + ": " + parts[3] + "\n");
-                }
-            } else if (message.startsWith("SYSTEM:")) {
-                chatArea.append(message.substring("SYSTEM:".length()) + "\n");
-            } else if (message.startsWith("FILE_REQUEST:")) {
-                String[] parts = message.split(":", 4);
-                if (parts.length == 4) {
-                    handleFileRequest(parts[1], parts[2], Long.parseLong(parts[3]));
-                }
-            } else if (message.startsWith("FILE_ACCEPT:")) {
-                String[] parts = message.split(":", 3);
-                if (parts.length == 3) {
-                    chatArea.append("系统: " + parts[1] + " 已接受文件传输: " + parts[2] + "\n");
-                }
-            } else if (message.startsWith("FILE_REJECT:")) {
-                String[] parts = message.split(":", 3);
-                if (parts.length == 3) {
-                    chatArea.append("系统: " + parts[1] + " 已拒绝文件传输: " + parts[2] + "\n");
-                    pendingFileTransfers.remove(parts[2]);
-                }
-            } else if (message.startsWith("FILE_TRANSFER_START:")) {
-                String[] parts = message.split(":", 5);
-                if (parts.length == 5) {
-                    sendFileData(parts[1], parts[2], parts[3], Integer.parseInt(parts[4]));
-                }
-            } else if (message.startsWith("FILE_READY:")) {
-                String[] parts = message.split(":", 4);
-                if (parts.length == 4) {
-                    // 通知服务器开始传输
-                    out.println("FILE_TRANSFER_START:" + parts[1] + ":" + parts[2] + ":" + parts[3]);
-                }
-            }
-        }
-    }
-
-    // 更新用户列表
-    private void updateUserList(String userListStr) {
-        userListModel.clear();
-        String[] users = userListStr.split(",");
-        for (String user : users) {
-            if (!user.isEmpty() && !user.equals(username)) {
-                userListModel.addElement(user);
-            }
-        }
-    }
-
-    // 更新群组列表
-    private void updateGroupList(String groupListStr) {
-        groupListModel.clear();
-        if (groupListStr.isEmpty()) return;
-
-        String[] groups = groupListStr.split(";");
-        for (String group : groups) {
-            if (group.isEmpty()) continue;
-
-            String[] parts = group.split(":", 2);
-            if (parts.length <= 0 || parts[0].isEmpty()) continue;
-
-            // 检查群组成员信息
-            if (parts.length > 1) {
-                String[] members = parts[1].split(",");
-                // 只添加当前用户是成员的群组
-                for (String member : members) {
-                    if (member.trim().equals(username)) {
-                        groupListModel.addElement(parts[0]);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    // 文件传输信息类
-    private class FileTransferInfo {
-        File file;
-        String receiver;
-
-        public FileTransferInfo(File file, String receiver) {
-            this.file = file;
-            this.receiver = receiver;
         }
     }
 }

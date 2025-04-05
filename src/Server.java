@@ -3,6 +3,15 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * 聊天客户端应用程序
+ * 
+ * @author Lx
+ * @version 1.0.0
+ * @since 2025-04-05
+ */
+
+
 public class Server {
     private static final int PORT = 12345;
     // 存储客户端的用户名和输出流

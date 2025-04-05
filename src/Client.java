@@ -6,6 +6,14 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 
+/**
+ * 聊天客户端应用程序
+ * 
+ * @author Lx
+ * @version 1.0.0
+ * @since 2025-04-05
+ */
+
 public class Client {
     // 网络相关
     private Socket socket;

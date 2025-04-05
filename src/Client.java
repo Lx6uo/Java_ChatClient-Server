@@ -7,8 +7,6 @@ import java.util.List;
 import javax.swing.*;
 
 /**
- * 聊天客户端应用程序
- * 
  * @author Lx
  * @version 1.0.0
  * @since 2025-04-05
@@ -42,15 +40,15 @@ public class Client {
     private String currentChatTarget = ""; // 私聊对象或群组名称
 
     // 文件传输相关
-    private Map<String, FileTransferInfo> pendingFileTransfers = new HashMap<>();
+    private Map<String, FileTransferInfo> pendingFileTransfers = new HashMap<>(); 
 
-    // 构造函数
-    public Client() {
-        initializeUI();
+    // 主方法
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Client().initUI());
     }
 
     // 初始化界面
-    private void initializeUI() {
+    private void initUI() {
         // 创建主窗口
         frame = new JFrame("聊天客户端");
         frame.setSize(600, 400);
@@ -71,108 +69,11 @@ public class Client {
 
         // 组装主界面
         frame.add(chatScrollPane, BorderLayout.CENTER);
-        frame.add(createRightPanel(), BorderLayout.EAST);
-        frame.add(createBottomPanel(), BorderLayout.SOUTH);
+        frame.add(MainPanel("right"), BorderLayout.EAST);
+        frame.add(MainPanel("bottom"), BorderLayout.SOUTH);
 
         // 显示登录对话框
         LoginPanel();
-    }
-
-    // 创建右侧面板
-    private JPanel createRightPanel() {
-        // 创建用户列表
-        userList = new JList<>(userListModel);
-        userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        userList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 1) {
-                    String selectedUser = userList.getSelectedValue();
-                    if (selectedUser != null && !selectedUser.equals(username)) {
-                        switchToChatMode("PRIVATE", selectedUser);
-                    }
-                }
-            }
-        });
-        JScrollPane userScrollPane = new JScrollPane(userList);
-        userScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // 创建群组列表
-        groupList = new JList<>(groupListModel);
-        groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        groupList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 1 && groupList.getSelectedValue() != null) {
-                    switchToChatMode("GROUP", groupList.getSelectedValue());
-                }
-            }
-        });
-        JScrollPane groupScrollPane = new JScrollPane(groupList);
-        groupScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // 创建创建群组按钮
-        JButton createGroupButton = new JButton("创建群组");
-        createGroupButton.addActionListener(e -> showCreateGroupDialog());
-        JPanel createGroupPanel = new JPanel(new BorderLayout());
-        createGroupPanel.add(groupScrollPane, BorderLayout.CENTER);
-        createGroupPanel.add(createGroupButton, BorderLayout.SOUTH);
-        createGroupPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // 创建公共聊天按钮面板
-        JPanel publicChatPanel = new JPanel(new BorderLayout());
-        JButton publicChatButton = new JButton("公共广播");
-        publicChatButton.addActionListener(e -> switchToChatMode("PUBLIC", ""));
-        publicChatPanel.add(publicChatButton, BorderLayout.CENTER);
-        publicChatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        // 创建右侧选项卡面板
-        rightPanel = new JTabbedPane();
-        rightPanel.addTab("在线用户", userScrollPane);
-        rightPanel.addTab("公共聊天", publicChatPanel);
-        rightPanel.addTab("群组列表", createGroupPanel);
-
-        // 设置选项卡切换事件
-        rightPanel.addChangeListener(e -> {
-            if (rightPanel.getSelectedIndex() == 1) { // 公共聊天选项卡
-                switchToChatMode("PUBLIC", "");
-            }
-        });
-
-        // 设置右侧面板大小
-        JPanel rightContainer = new JPanel(new BorderLayout());
-        rightContainer.add(rightPanel, BorderLayout.CENTER);
-        rightContainer.setPreferredSize(new Dimension(250, frame.getHeight()));
-        rightContainer.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        return rightContainer;
-    }
-
-    // 创建底部面板
-    private JPanel createBottomPanel() {
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-
-        // 创建消息输入框
-        messageField = new JTextField();
-        messageField.addActionListener(e -> sendMessage());
-
-        // 创建发送按钮和文件按钮
-        sendButton = new JButton("发送");
-        sendButton.addActionListener(e -> sendMessage());
-        fileButton = new JButton("发送文件");
-        fileButton.addActionListener(e -> sendFile());
-        fileButton.setEnabled(false); // 初始禁用，只有私聊时才启用
-
-        // 组装按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(fileButton);
-        buttonPanel.add(sendButton);
-
-        // 组装底部面板
-        bottomPanel.add(messageField, BorderLayout.CENTER);
-        bottomPanel.add(buttonPanel, BorderLayout.EAST);
-
-        return bottomPanel;
     }
 
     // 显示登录对话框
@@ -186,11 +87,11 @@ public class Client {
         // 创建输入面板
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
+            
         JTextField serverField = new JTextField(serverAddress);
         JTextField usernameField = new JTextField();
         JButton loginButton = new JButton("登录");
-        
+            
         loginButton.addActionListener(e -> {
             serverAddress = serverField.getText().trim();
             if (serverAddress.isEmpty()) serverAddress = "127.0.0.1";
@@ -209,7 +110,7 @@ public class Client {
         inputPanel.add(serverField);
         inputPanel.add(new JLabel("用户名:"));
         inputPanel.add(usernameField);
-        
+     
         // 创建按钮面板并居中
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(loginButton);
@@ -221,6 +122,107 @@ public class Client {
         
         loginDialog.setLocationRelativeTo(null);
         loginDialog.setVisible(true);
+    }
+
+    // 创建面板
+    private JPanel MainPanel(String panelType) {
+        if (panelType.equals("right")) {
+            // 创建右侧面板
+            JPanel rightContainer = new JPanel(new BorderLayout());
+            
+            // 创建用户列表
+            userList = new JList<>(userListModel);
+            userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            userList.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 1) {
+                        String selectedUser = userList.getSelectedValue();
+                        if (selectedUser != null && !selectedUser.equals(username)) {
+                            switchToChatMode("PRIVATE", selectedUser);
+                        }
+                    }
+                }
+            });
+            JScrollPane userScrollPane = new JScrollPane(userList);
+            userScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            // 创建群组列表
+            groupList = new JList<>(groupListModel);
+            groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            groupList.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 1 && groupList.getSelectedValue() != null) {
+                        switchToChatMode("GROUP", groupList.getSelectedValue());
+                    }
+                }
+            });
+            JScrollPane groupScrollPane = new JScrollPane(groupList);
+            groupScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            // 创建创建群组按钮
+            JButton createGroupButton = new JButton("创建群组");
+            createGroupButton.addActionListener(e -> showCreateGroupDialog());
+            JPanel createGroupPanel = new JPanel(new BorderLayout());
+            createGroupPanel.add(groupScrollPane, BorderLayout.CENTER);
+            createGroupPanel.add(createGroupButton, BorderLayout.SOUTH);
+            createGroupPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            // 创建公共聊天按钮面板
+            JPanel publicChatPanel = new JPanel(new BorderLayout());
+            JButton publicChatButton = new JButton("公共广播");
+            publicChatButton.addActionListener(e -> switchToChatMode("PUBLIC", ""));
+            publicChatPanel.add(publicChatButton, BorderLayout.CENTER);
+            publicChatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            // 创建右侧选项卡面板
+            rightPanel = new JTabbedPane();
+            rightPanel.addTab("在线用户", userScrollPane);
+            rightPanel.addTab("公共聊天", publicChatPanel);
+            rightPanel.addTab("群组列表", createGroupPanel);
+
+            // 设置选项卡切换事件
+            rightPanel.addChangeListener(e -> {
+                if (rightPanel.getSelectedIndex() == 1) { // 公共聊天选项卡
+                    switchToChatMode("PUBLIC", "");
+                }
+            });
+
+            // 设置右侧面板大小
+            rightContainer.add(rightPanel, BorderLayout.CENTER);
+            rightContainer.setPreferredSize(new Dimension(250, frame.getHeight()));
+            rightContainer.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+            return rightContainer;
+            
+        } else if (panelType.equals("bottom")) {
+            // 创建底部面板
+            JPanel bottomPanel = new JPanel(new BorderLayout());
+
+            // 创建消息输入框
+            messageField = new JTextField();
+            messageField.addActionListener(e -> sendMessage());
+
+            // 创建发送按钮和文件按钮
+            sendButton = new JButton("发送");
+            sendButton.addActionListener(e -> sendMessage());
+            fileButton = new JButton("发送文件");
+            fileButton.addActionListener(e -> sendFile());
+            fileButton.setEnabled(false); // 初始禁用，只有私聊时才启用
+
+            // 组装按钮面板
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            buttonPanel.add(fileButton);
+            buttonPanel.add(sendButton);
+
+            // 组装底部面板
+            bottomPanel.add(messageField, BorderLayout.CENTER);
+            bottomPanel.add(buttonPanel, BorderLayout.EAST);
+
+            return bottomPanel;
+        }
+        return new JPanel(); // 默认返回空面板
     }
 
     // 连接到服务器
@@ -614,10 +616,5 @@ public class Client {
             this.file = file;
             this.receiver = receiver;
         }
-    }
-
-    // 主方法
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new Client());
     }
 }

@@ -53,7 +53,7 @@ public class Client {
     private void initializeUI() {
         // 创建主窗口
         frame = new JFrame("聊天客户端");
-        frame.setSize(800, 600);
+        frame.setSize(600, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
@@ -75,7 +75,7 @@ public class Client {
         frame.add(createBottomPanel(), BorderLayout.SOUTH);
 
         // 显示登录对话框
-        showLoginDialog();
+        LoginPanel();
     }
 
     // 创建右侧面板
@@ -86,7 +86,7 @@ public class Client {
         userList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
+                if (e.getClickCount() == 1) {
                     String selectedUser = userList.getSelectedValue();
                     if (selectedUser != null && !selectedUser.equals(username)) {
                         switchToChatMode("PRIVATE", selectedUser);
@@ -103,7 +103,7 @@ public class Client {
         groupList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && groupList.getSelectedValue() != null) {
+                if (e.getClickCount() == 1 && groupList.getSelectedValue() != null) {
                     switchToChatMode("GROUP", groupList.getSelectedValue());
                 }
             }
@@ -176,20 +176,25 @@ public class Client {
     }
 
     // 显示登录对话框
-    private void showLoginDialog() {
+    private void LoginPanel() {
         JDialog loginDialog = new JDialog(frame, "登录", true);
-        loginDialog.setSize(300, 150);
-        loginDialog.setLayout(new GridLayout(3, 2, 5, 5));
-
+        loginDialog.setSize(200, 180);
+        
+        // 使用BorderLayout替代GridLayout
+        loginDialog.setLayout(new BorderLayout(10, 10));
+        
+        // 创建输入面板
+        JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
         JTextField serverField = new JTextField(serverAddress);
         JTextField usernameField = new JTextField();
         JButton loginButton = new JButton("登录");
-        JButton cancelButton = new JButton("取消");
-
+        
         loginButton.addActionListener(e -> {
             serverAddress = serverField.getText().trim();
             if (serverAddress.isEmpty()) serverAddress = "127.0.0.1";
-
+            
             username = usernameField.getText().trim();
             if (!username.isEmpty()) {
                 loginDialog.dispose();
@@ -198,16 +203,22 @@ public class Client {
                 JOptionPane.showMessageDialog(loginDialog, "用户名不能为空！");
             }
         });
-
-        cancelButton.addActionListener(e -> System.exit(0));
-
-        loginDialog.add(new JLabel("服务器地址:"));
-        loginDialog.add(serverField);
-        loginDialog.add(new JLabel("用户名:"));
-        loginDialog.add(usernameField);
-        loginDialog.add(loginButton);
-        loginDialog.add(cancelButton);
-
+        
+        // 添加输入字段到输入面板
+        inputPanel.add(new JLabel("服务器地址:"));
+        inputPanel.add(serverField);
+        inputPanel.add(new JLabel("用户名:"));
+        inputPanel.add(usernameField);
+        
+        // 创建按钮面板并居中
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(loginButton);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        
+        // 将面板添加到对话框
+        loginDialog.add(inputPanel, BorderLayout.CENTER);
+        loginDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
         loginDialog.setLocationRelativeTo(null);
         loginDialog.setVisible(true);
     }
@@ -311,7 +322,7 @@ public class Client {
         topPanel.add(new JLabel("群组名称:"), BorderLayout.WEST);
         topPanel.add(nameField, BorderLayout.CENTER);
 
-        JLabel membersLabel = new JLabel("选择成员:");
+        JLabel membersLabel = new JLabel("按CTRL多选群聊成员:");
 
         // 创建用户选择列表
         JList<String> memberList = new JList<>(userListModel);

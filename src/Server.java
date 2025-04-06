@@ -22,7 +22,7 @@ public class Server {
     private static final Map<String, Set<String>> groups = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
-        System.out.println("服务器启动，等待客户端连接...");
+        System.out.println("服务器启动，等待客户端连接...，接口为：" + PORT);
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
                 new ClientHandler(serverSocket.accept()).start();  // 接受客户端连接并处理
@@ -289,7 +289,6 @@ public class Server {
                             groupList.append(";");
                         }
                     }
-
                     // 发送个性化的群组列表给每个用户
                     writer.println(groupList.toString());
                 }

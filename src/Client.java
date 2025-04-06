@@ -105,9 +105,9 @@ public class Client {
         });
         
         // 添加输入字段到输入面板
-        inputPanel.add(new JLabel("服务器地址:"));
+        inputPanel.add(new JLabel("服务器IP地址:"));
         inputPanel.add(serverField);
-        inputPanel.add(new JLabel("用户名:"));
+        inputPanel.add(new JLabel("用户名ID:"));
         inputPanel.add(usernameField);
      
         // 创建按钮面板并居中
@@ -224,77 +224,16 @@ public class Client {
         return new JPanel(); // 默认返回空面板
     }
 
-    // 连接到服务器
-    private void connectToServer() {
-        try {
-            socket = new Socket(serverAddress, port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);
-            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()), 8192), true);
-            objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream(), 8192));
-            objectOut.flush(); // 确保对象头信息被写入
-            objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream(), 8192));
-
-            // 主动发送用户名到服务器
-            out.println("LOGIN:" + username);
-
-            // 启动接收消息的线程
-            new Thread(new IncomingReader()).start();
-
-            // 设置窗口标题
-            frame.setTitle("聊天客户端 - " + username + " (" + serverAddress + ":" + port + ")");
-            frame.setVisible(true);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "无法连接到服务器: " + e.getMessage());
-            System.exit(1);
-        }
-    }
-
-    // 发送消息
-    private void sendMessage() {
-        String message = messageField.getText();
-        if (message.isEmpty()) return;
-
-        if (currentChatMode.equals("PUBLIC")) {
-            out.println(message);
-        } else if (currentChatMode.equals("PRIVATE")) {
-            out.println("PRIVATE:" + currentChatTarget + ":" + message);
-        } else if (currentChatMode.equals("GROUP")) {
-            out.println("GROUP:" + currentChatTarget + ":" + message);
-        }
-        messageField.setText("");
-    }
-
-    // 切换聊天模式
-    private void switchChatMode(String mode, String target) {
-        currentChatMode = mode;
-        currentChatTarget = target;
-        boolean enableFileButton = false;
-
-        // 更新文件按钮状态
-        if (mode.equals("PRIVATE")) {
-            enableFileButton = true;
-        } 
-        fileButton.setEnabled(enableFileButton);
-
-        // 提示当前聊天模式
-        String modeText = mode.equals("PUBLIC") ? "公共聊天" :
-                mode.equals("PRIVATE") ? "与 " + target + " 的私聊" :
-                        "群组 " + target + " 聊天";
-        chatArea.append("系统: 已切换到" + modeText + "\n");
-    }
-
-    // 显示创建群组窗口
+    // 显示弹出创建群组窗口
     private void createGroupPanel() {
         JDialog dialog = new JDialog(frame, "创建群组", true);
-        dialog.setSize(300, 400);
+        dialog.setSize(200, 300);
         dialog.setLayout(new BorderLayout());
 
         JTextField nameField = new JTextField();
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(new JLabel("群组名称:"), BorderLayout.WEST);
         topPanel.add(nameField, BorderLayout.CENTER);
-
-        JLabel membersLabel = new JLabel("按CTRL多选群聊成员:");
 
         // 创建用户选择列表
         JList<String> memberList = new JList<>(userListModel);
@@ -341,6 +280,69 @@ public class Client {
 
         dialog.setLocationRelativeTo(frame);
         dialog.setVisible(true);
+    }
+
+    // 连接到服务器
+    private void connectToServer() {
+        try {
+            socket = new Socket(serverAddress, port);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);
+            out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()), 8192), true);
+            objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream(), 8192));
+            objectOut.flush(); // 确保对象头信息被写入
+            objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream(), 8192));
+
+            // 主动发送用户名到服务器
+            out.println("LOGIN:" + username);
+
+            // 启动接收消息的线程
+            new Thread(new IncomingReader()).start();
+
+            // 设置窗口标题
+            frame.setTitle("聊天客户端 - " + username + " (" + serverAddress + ":" + port + ")");
+            frame.setVisible(true);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(frame, "无法连接到服务器: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    // 发送消息
+    private void sendMessage() {
+        String message = messageField.getText();
+        if (message.isEmpty()) return;
+
+        switch (currentChatMode) {
+            case "PUBLIC":
+                out.println(message);
+                break;
+            case "PRIVATE":
+                out.println("PRIVATE:" + currentChatTarget + ":" + message);
+                break;
+            case "GROUP":
+                out.println("GROUP:" + currentChatTarget + ":" + message);
+                break;
+        }
+        messageField.setText("");
+    }
+
+    // 切换聊天模式
+    private void switchChatMode(String mode, String target) {
+        currentChatMode = mode;
+        currentChatTarget = target;
+        boolean enableFileButton = false;
+
+        // 更新文件按钮状态
+        if (mode.equals("PRIVATE")) {
+            enableFileButton = true;
+        } 
+        fileButton.setEnabled(enableFileButton);
+
+        // 提示当前聊天模式
+        String modeText = mode.equals("PUBLIC") ? "公共聊天" :
+                mode.equals("PRIVATE") ? "与 " + target + " 的私聊" :
+                        "群组 " + target + " 聊天";
+        chatArea.append("系统: 已切换到" + modeText + "\n");
     }
 
     // 接收服务器消息的线程

@@ -239,6 +239,18 @@ public class Client {
         JList<String> memberList = new JList<>(userListModel);
         memberList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
+        JPanel buttonPanel = getJPanel(nameField, dialog, memberList);
+
+        dialog.add(topPanel, BorderLayout.NORTH);
+        dialog.add(new JLabel("选择成员:"), BorderLayout.WEST);
+        dialog.add(new JScrollPane(memberList), BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+    }
+
+    private JPanel getJPanel(JTextField nameField, JDialog dialog, JList<String> memberList) {
         JButton createButton = new JButton("创建");
         createButton.addActionListener(e -> {
             String groupName = nameField.getText().trim();
@@ -272,14 +284,7 @@ public class Client {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(createButton);
         buttonPanel.add(cancelButton);
-
-        dialog.add(topPanel, BorderLayout.NORTH);
-        dialog.add(new JLabel("选择成员:"), BorderLayout.WEST);
-        dialog.add(new JScrollPane(memberList), BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-        dialog.setLocationRelativeTo(frame);
-        dialog.setVisible(true);
+        return buttonPanel;
     }
 
     // 连接到服务器
@@ -330,12 +335,9 @@ public class Client {
     private void switchChatMode(String mode, String target) {
         currentChatMode = mode;
         currentChatTarget = target;
-        boolean enableFileButton = false;
+        boolean enableFileButton = mode.equals("PRIVATE");
 
         // 更新文件按钮状态
-        if (mode.equals("PRIVATE")) {
-            enableFileButton = true;
-        } 
         fileButton.setEnabled(enableFileButton);
 
         // 提示当前聊天模式

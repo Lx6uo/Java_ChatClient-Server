@@ -22,7 +22,7 @@ public class Server {
     private static final Map<String, Set<String>> groups = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
-        System.out.println("服务器启动，接口为：" + PORT + "等待客户端连接...");
+        System.out.println("服务器启动，接口为：" + PORT + ". 等待客户端连接...");
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
                 new ClientHandler(serverSocket.accept()).start();  // 接受客户端连接并处理

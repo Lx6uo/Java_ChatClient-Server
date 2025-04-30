@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * ÁÄÌì¿Í»§¶ËÓ¦ÓÃ³ÌĞò
+ * èŠå¤©å®¢æˆ·ç«¯åº”ç”¨ç¨‹åº
  * 
  * @author Lx
  * @version 1.0.0
@@ -14,23 +14,23 @@ import java.util.concurrent.*;
 
 public class Server {
     private static final int PORT = 12345;
-    // ´æ´¢¿Í»§¶ËµÄÓÃ»§ÃûºÍÊä³öÁ÷
+    // å­˜å‚¨å®¢æˆ·ç«¯çš„ç”¨æˆ·åå’Œè¾“å‡ºæµ
     private static final Map<String, PrintWriter> clientWriters = new ConcurrentHashMap<>();
-    // ´æ´¢¿Í»§¶ËµÄSocketÁ¬½Ó£¬ÓÃÓÚÎÄ¼ş´«Êä
+    // å­˜å‚¨å®¢æˆ·ç«¯çš„Socketè¿æ¥ï¼Œç”¨äºæ–‡ä»¶ä¼ è¾“
     private static final Map<String, Socket> clientSockets = new ConcurrentHashMap<>();
-    // ´æ´¢Èº×éĞÅÏ¢£¬Èº×éÃû³ÆºÍ³ÉÔ±ÁĞ±í
+    // å­˜å‚¨ç¾¤ç»„ä¿¡æ¯ï¼Œç¾¤ç»„åç§°å’Œæˆå‘˜åˆ—è¡¨
     private static final Map<String, Set<String>> groups = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
-        System.out.println("·şÎñÆ÷Æô¶¯£¬½Ó¿ÚÎª£º" + PORT + ". µÈ´ı¿Í»§¶ËÁ¬½Ó...");
+        System.out.println("æœåŠ¡å™¨å¯åŠ¨ï¼Œæ¥å£ä¸ºï¼š" + PORT + ". ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥...");
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
-                new ClientHandler(serverSocket.accept()).start();  // ½ÓÊÜ¿Í»§¶ËÁ¬½Ó²¢´¦Àí
+                new ClientHandler(serverSocket.accept()).start();  // æ¥å—å®¢æˆ·ç«¯è¿æ¥å¹¶å¤„ç†
             }
         }
     }
 
-    // Ã¿¸ö¿Í»§¶Ë¶ÔÓ¦Ò»¸öÏß³Ì
+    // æ¯ä¸ªå®¢æˆ·ç«¯å¯¹åº”ä¸€ä¸ªçº¿ç¨‹
     private static class ClientHandler extends Thread {
         private Socket socket;
         private PrintWriter out;
@@ -45,42 +45,42 @@ public class Server {
 
         public void run() {
             try {
-                // ´´½¨ÊäÈëÊä³öÁ÷
+                // åˆ›å»ºè¾“å…¥è¾“å‡ºæµ
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
                 objectOut = new ObjectOutputStream(socket.getOutputStream());
                 objectIn = new ObjectInputStream(socket.getInputStream());
 
-                // ´¦ÀíÓÃ»§µÇÂ¼
+                // å¤„ç†ç”¨æˆ·ç™»å½•
                 handleLogin();
 
-                // ·¢ËÍµ±Ç°ÔÚÏßÓÃ»§ÁĞ±íºÍÈº×éÁĞ±í
+                // å‘é€å½“å‰åœ¨çº¿ç”¨æˆ·åˆ—è¡¨å’Œç¾¤ç»„åˆ—è¡¨
                 sendUserList();
                 sendGroupList();
 
-                // ¹ã²¥»¶Ó­ÏûÏ¢
-                broadcastMessage("SYSTEM:" + clientName + " ÒÑ¼ÓÈëÁÄÌì£¡");
+                // å¹¿æ’­æ¬¢è¿æ¶ˆæ¯
+                broadcastMessage("SYSTEM:" + clientName + " å·²åŠ å…¥èŠå¤©ï¼");
 
-                // ´¦Àí¿Í»§¶ËÏûÏ¢
+                // å¤„ç†å®¢æˆ·ç«¯æ¶ˆæ¯
                 processClientMessages();
 
             } catch (IOException e) {
-                System.out.println("¿Í»§¶ËÁ¬½ÓÒì³£: " + e.getMessage());
+                System.out.println("å®¢æˆ·ç«¯è¿æ¥å¼‚å¸¸: " + e.getMessage());
             } finally {
                 handleClientDisconnect();
             }
         }
 
-        // ´¦ÀíÓÃ»§µÇÂ¼
+        // å¤„ç†ç”¨æˆ·ç™»å½•
         private void handleLogin() throws IOException {
-            // ÏÈ¼ì²é¿Í»§¶ËÊÇ·ñÒÑ¾­·¢ËÍÁËµÇÂ¼ĞÅÏ¢
+            // å…ˆæ£€æŸ¥å®¢æˆ·ç«¯æ˜¯å¦å·²ç»å‘é€äº†ç™»å½•ä¿¡æ¯
             String firstMessage = in.readLine();
             
             if (firstMessage != null && firstMessage.startsWith("LOGIN:")) {
-                // ¿Í»§¶ËÖ÷¶¯·¢ËÍÁËµÇÂ¼ĞÅÏ¢
+                // å®¢æˆ·ç«¯ä¸»åŠ¨å‘é€äº†ç™»å½•ä¿¡æ¯
                 clientName = firstMessage.substring("LOGIN:".length());
             } else {
-                // Ê¹ÓÃÔ­À´µÄµÇÂ¼Á÷³Ì
+                // ä½¿ç”¨åŸæ¥çš„ç™»å½•æµç¨‹
                 out.println("LOGIN_REQUEST");
                 if (firstMessage != null) {
                     clientName = firstMessage;
@@ -89,11 +89,11 @@ public class Server {
                 }
             }
 
-            // ¼ì²éÓÃ»§ÃûÊÇ·ñÒÑ±»Ê¹ÓÃ
+            // æ£€æŸ¥ç”¨æˆ·åæ˜¯å¦å·²è¢«ä½¿ç”¨
             synchronized (clientWriters) {
                 if (clientWriters.containsKey(clientName)) {
-                    out.println("LOGIN_FAILED:ÓÃ»§ÃûÒÑ±»Ê¹ÓÃ£¬ÇëÖØĞÂÑ¡ÔñÒ»¸öÓÃ»§Ãû£¡");
-                    // ÖØĞÂÆô¶¯µÇÂ¼Á÷³Ì
+                    out.println("LOGIN_FAILED:ç”¨æˆ·åå·²è¢«ä½¿ç”¨ï¼Œè¯·é‡æ–°é€‰æ‹©ä¸€ä¸ªç”¨æˆ·åï¼");
+                    // é‡æ–°å¯åŠ¨ç™»å½•æµç¨‹
                     handleLogin();
                     return;
                 } else {
@@ -104,7 +104,7 @@ public class Server {
             }
         }
 
-        // ´¦Àí¿Í»§¶ËÏûÏ¢
+        // å¤„ç†å®¢æˆ·ç«¯æ¶ˆæ¯
         private void processClientMessages() throws IOException {
             String message;
             while ((message = in.readLine()) != null) {
@@ -151,13 +151,13 @@ public class Server {
                         }
                         break;
                     default:
-                        // ÆÕÍ¨¹ã²¥ÏûÏ¢
+                        // æ™®é€šå¹¿æ’­æ¶ˆæ¯
                         broadcastMessage("BROADCAST:" + clientName + ":" + message);
                 }
             }
         }
 
-        // ´¦Àí¿Í»§¶Ë¶Ï¿ªÁ¬½Ó
+        // å¤„ç†å®¢æˆ·ç«¯æ–­å¼€è¿æ¥
         private void handleClientDisconnect() {
             if (clientName != null) {
                 synchronized (clientWriters) {
@@ -165,26 +165,26 @@ public class Server {
                     clientSockets.remove(clientName);
                 }
 
-                // ´ÓËùÓĞÈº×éÖĞÒÆ³ı¸ÃÓÃ»§
+                // ä»æ‰€æœ‰ç¾¤ç»„ä¸­ç§»é™¤è¯¥ç”¨æˆ·
                 for (Set<String> members : groups.values()) {
                     members.remove(clientName);
                 }
 
-                // ·¢ËÍ¸üĞÂºóµÄÓÃ»§ÁĞ±í
+                // å‘é€æ›´æ–°åçš„ç”¨æˆ·åˆ—è¡¨
                 sendUserList();
 
-                // ¹ã²¥ÓÃ»§Àë¿ªÏûÏ¢
-                broadcastMessage("SYSTEM:" + clientName + " ÒÑÀë¿ªÁÄÌì£¡");
+                // å¹¿æ’­ç”¨æˆ·ç¦»å¼€æ¶ˆæ¯
+                broadcastMessage("SYSTEM:" + clientName + " å·²ç¦»å¼€èŠå¤©ï¼");
             }
 
             try {
                 socket.close();
             } catch (IOException e) {
-                System.out.println("¹Ø±ÕsocketÒì³£: " + e.getMessage());
+                System.out.println("å…³é—­socketå¼‚å¸¸: " + e.getMessage());
             }
         }
 
-        // ¹ã²¥ÏûÏ¢¸øËùÓĞ¿Í»§¶Ë
+        // å¹¿æ’­æ¶ˆæ¯ç»™æ‰€æœ‰å®¢æˆ·ç«¯
         private void broadcastMessage(String message) {
             synchronized (clientWriters) {
                 for (PrintWriter writer : clientWriters.values()) {
@@ -193,27 +193,27 @@ public class Server {
             }
         }
 
-        // ·¢ËÍË½ÁÄÏûÏ¢¸øÖ¸¶¨ÓÃ»§
+        // å‘é€ç§èŠæ¶ˆæ¯ç»™æŒ‡å®šç”¨æˆ·
         private void sendPrivateMessage(String recipient, String message) {
             PrintWriter recipientWriter = clientWriters.get(recipient);
             if (recipientWriter != null) {
                 recipientWriter.println("PRIVATE:" + clientName + ":" + message);
-                out.println("PRIVATE_SENT:" + recipient + ":" + message); // ¸æÖª·¢ËÍ·½Ë½ÁÄÒÑ·¢ËÍ
+                out.println("PRIVATE_SENT:" + recipient + ":" + message); // å‘ŠçŸ¥å‘é€æ–¹ç§èŠå·²å‘é€
             } else {
-                out.println("SYSTEM:ÓÃ»§ " + recipient + " ²»ÔÚÏß£¡");
+                out.println("SYSTEM:ç”¨æˆ· " + recipient + " ä¸åœ¨çº¿ï¼");
             }
         }
 
-        // ·¢ËÍÈºÁÄÏûÏ¢
+        // å‘é€ç¾¤èŠæ¶ˆæ¯
         private void sendGroupMessage(String groupName, String message) {
             Set<String> members = groups.get(groupName);
             if (members == null) {
-                out.println("SYSTEM:Èº×é " + groupName + " ²»´æÔÚ£¡");
+                out.println("SYSTEM:ç¾¤ç»„ " + groupName + " ä¸å­˜åœ¨ï¼");
                 return;
             }
 
             if (!members.contains(clientName)) {
-                out.println("SYSTEM:Äú²»ÊÇÈº×é " + groupName + " µÄ³ÉÔ±£¡");
+                out.println("SYSTEM:æ‚¨ä¸æ˜¯ç¾¤ç»„ " + groupName + " çš„æˆå‘˜ï¼");
                 return;
             }
 
@@ -226,15 +226,15 @@ public class Server {
             }
         }
 
-        // ´´½¨ĞÂÈº×é
+        // åˆ›å»ºæ–°ç¾¤ç»„
         private void createGroup(String groupName, String memberList) {
             if (groups.containsKey(groupName)) {
-                out.println("SYSTEM:Èº×éÃû " + groupName + " ÒÑ´æÔÚ£¡");
+                out.println("SYSTEM:ç¾¤ç»„å " + groupName + " å·²å­˜åœ¨ï¼");
                 return;
             }
 
             Set<String> members = new HashSet<>();
-            members.add(clientName); // ´´½¨Õß×Ô¶¯¼ÓÈëÈº×é
+            members.add(clientName); // åˆ›å»ºè€…è‡ªåŠ¨åŠ å…¥ç¾¤ç»„
 
             for (String member : memberList.split(",")) {
                 if (!member.isEmpty() && clientWriters.containsKey(member)) {
@@ -244,8 +244,8 @@ public class Server {
 
             groups.put(groupName, members);
 
-            // Í¨ÖªËùÓĞÈº×é³ÉÔ±
-            String notification = "SYSTEM:ÄúÒÑ±»Ìí¼Óµ½Èº×é " + groupName;
+            // é€šçŸ¥æ‰€æœ‰ç¾¤ç»„æˆå‘˜
+            String notification = "SYSTEM:æ‚¨å·²è¢«æ·»åŠ åˆ°ç¾¤ç»„ " + groupName;
             for (String member : members) {
                 PrintWriter memberWriter = clientWriters.get(member);
                 if (memberWriter != null) {
@@ -253,11 +253,11 @@ public class Server {
                 }
             }
 
-            // ¸üĞÂËùÓĞ¿Í»§¶ËµÄÈº×éÁĞ±í
+            // æ›´æ–°æ‰€æœ‰å®¢æˆ·ç«¯çš„ç¾¤ç»„åˆ—è¡¨
             sendGroupList();
         }
 
-        // ·¢ËÍÔÚÏßÓÃ»§ÁĞ±í
+        // å‘é€åœ¨çº¿ç”¨æˆ·åˆ—è¡¨
         private void sendUserList() {
             StringBuilder userList = new StringBuilder("USER_LIST:");
             synchronized (clientWriters) {
@@ -268,7 +268,7 @@ public class Server {
             broadcastMessage(userList.toString());
         }
 
-        // ·¢ËÍÈº×éÁĞ±í
+        // å‘é€ç¾¤ç»„åˆ—è¡¨
         private void sendGroupList() {
             synchronized (clientWriters) {
                 for (Map.Entry<String, PrintWriter> entry : clientWriters.entrySet()) {
@@ -280,7 +280,7 @@ public class Server {
                         String groupName = groupEntry.getKey();
                         Set<String> members = groupEntry.getValue();
 
-                        // Ö»ÓĞµ±ÓÃ»§ÊÇÈº×é³ÉÔ±Ê±£¬²ÅÌí¼Ó¸ÃÈº×éµ½ÁĞ±í
+                        // åªæœ‰å½“ç”¨æˆ·æ˜¯ç¾¤ç»„æˆå‘˜æ—¶ï¼Œæ‰æ·»åŠ è¯¥ç¾¤ç»„åˆ°åˆ—è¡¨
                         if (members.contains(user)) {
                             groupList.append(groupName).append(":");
                             for (String member : members) {
@@ -289,56 +289,56 @@ public class Server {
                             groupList.append(";");
                         }
                     }
-                    // ·¢ËÍ¸öĞÔ»¯µÄÈº×éÁĞ±í¸øÃ¿¸öÓÃ»§
+                    // å‘é€ä¸ªæ€§åŒ–çš„ç¾¤ç»„åˆ—è¡¨ç»™æ¯ä¸ªç”¨æˆ·
                     writer.println(groupList.toString());
                 }
             }
         }
 
-        // ´¦ÀíÎÄ¼ş´«ÊäÇëÇó
+        // å¤„ç†æ–‡ä»¶ä¼ è¾“è¯·æ±‚
         private void handleFileRequest(String receiver, String filename, String filesize) {
             PrintWriter receiverWriter = clientWriters.get(receiver);
             if (receiverWriter != null) {
                 receiverWriter.println("FILE_REQUEST:" + clientName + ":" + filename + ":" + filesize);
             } else {
-                out.println("SYSTEM:ÓÃ»§ " + receiver + " ²»ÔÚÏß£¬ÎŞ·¨·¢ËÍÎÄ¼ş£¡");
+                out.println("SYSTEM:ç”¨æˆ· " + receiver + " ä¸åœ¨çº¿ï¼Œæ— æ³•å‘é€æ–‡ä»¶ï¼");
             }
         }
 
-        // ´¦Àí½ÓÊÜÎÄ¼ş´«Êä
+        // å¤„ç†æ¥å—æ–‡ä»¶ä¼ è¾“
         private void handleFileAccept(String sender, String filename) {
             PrintWriter senderWriter = clientWriters.get(sender);
             if (senderWriter == null) return;
 
             senderWriter.println("FILE_ACCEPT:" + clientName + ":" + filename);
 
-            // Æô¶¯ÎÄ¼ş´«ÊäÏß³Ì
+            // å¯åŠ¨æ–‡ä»¶ä¼ è¾“çº¿ç¨‹
             new Thread(() -> {
                 try {
                     Socket senderSocket = clientSockets.get(sender);
                     Socket receiverSocket = clientSockets.get(clientName);
 
                     if (senderSocket != null && receiverSocket != null) {
-                        // ÎªÎÄ¼ş´«Êä´´½¨Ò»¸öÁÙÊ±¶Ë¿Ú
+                        // ä¸ºæ–‡ä»¶ä¼ è¾“åˆ›å»ºä¸€ä¸ªä¸´æ—¶ç«¯å£
                         ServerSocket fileTransferServer = new ServerSocket(0);
                         int filePort = fileTransferServer.getLocalPort();
 
-                        // Í¨Öª·¢ËÍ·½¿ªÊ¼´«Êä£¬²¢Ìá¹©½ÓÊÕ·½µÄÁ¬½ÓĞÅÏ¢
+                        // é€šçŸ¥å‘é€æ–¹å¼€å§‹ä¼ è¾“ï¼Œå¹¶æä¾›æ¥æ”¶æ–¹çš„è¿æ¥ä¿¡æ¯
                         senderWriter.println("FILE_TRANSFER_START:" + clientName + ":" + filename +
                                 ":" + receiverSocket.getInetAddress().getHostAddress() +
                                 ":" + filePort);
 
-                        // µÈ´ıÎÄ¼ş´«ÊäÍê³É
+                        // ç­‰å¾…æ–‡ä»¶ä¼ è¾“å®Œæˆ
                         fileTransferServer.close();
                     }
                 } catch (Exception e) {
-                    System.out.println("ÎÄ¼ş´«ÊäÒì³£: " + e.getMessage());
+                    System.out.println("æ–‡ä»¶ä¼ è¾“å¼‚å¸¸: " + e.getMessage());
                     e.printStackTrace();
                 }
             }).start();
         }
 
-        // ´¦Àí¾Ü¾øÎÄ¼ş´«Êä
+        // å¤„ç†æ‹’ç»æ–‡ä»¶ä¼ è¾“
         private void handleFileReject(String sender, String filename) {
             PrintWriter senderWriter = clientWriters.get(sender);
             if (senderWriter != null) {
@@ -346,16 +346,16 @@ public class Server {
             }
         }
 
-        // ´¦Àí½ÓÊÕ·½×¼±¸ºÃ½ÓÊÕÎÄ¼ş
+        // å¤„ç†æ¥æ”¶æ–¹å‡†å¤‡å¥½æ¥æ”¶æ–‡ä»¶
         private void handleFileReady(String sender, String filename, String port) {
             PrintWriter senderWriter = clientWriters.get(sender);
             if (senderWriter != null) {
-                // »ñÈ¡½ÓÊÕ·½µÄIPµØÖ·
+                // è·å–æ¥æ”¶æ–¹çš„IPåœ°å€
                 String receiverIP = socket.getInetAddress().getHostAddress();
 
-                // Í¨Öª·¢ËÍ·½¿ªÊ¼´«Êä
+                // é€šçŸ¥å‘é€æ–¹å¼€å§‹ä¼ è¾“
                 senderWriter.println("FILE_TRANSFER_START:" + clientName + ":" + filename + ":" + receiverIP + ":" + port);
-                System.out.println("ÎÄ¼ş´«Êä×¼±¸¾ÍĞ÷: " + sender + " -> " + clientName + ", ÎÄ¼ş: " + filename);
+                System.out.println("æ–‡ä»¶ä¼ è¾“å‡†å¤‡å°±ç»ª: " + sender + " -> " + clientName + ", æ–‡ä»¶: " + filename);
             }
         }
     }

@@ -13,7 +13,7 @@ import javax.swing.*;
  */
 
 public class Client {
-    // ÍøÂçÏà¹Ø
+    // ç½‘ç»œç›¸å…³
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -23,7 +23,7 @@ public class Client {
     private int port = 12345;
     private String username;
 
-    // ½çÃæ×é¼ş
+    // ç•Œé¢ç»„ä»¶
     private JFrame frame;
     private JTextArea chatArea;
     private JTextField messageField;
@@ -35,27 +35,27 @@ public class Client {
     private JButton sendButton;
     private JButton fileButton;
 
-    // µ±Ç°ÁÄÌìÄ£Ê½
+    // å½“å‰èŠå¤©æ¨¡å¼
     private String currentChatMode = "PUBLIC"; // PUBLIC, PRIVATE, GROUP
-    private String currentChatTarget = ""; // Ë½ÁÄ¶ÔÏó»òÈº×éÃû³Æ
+    private String currentChatTarget = ""; // ç§èŠå¯¹è±¡æˆ–ç¾¤ç»„åç§°
 
-    // ÎÄ¼ş´«ÊäÏà¹Ø
+    // æ–‡ä»¶ä¼ è¾“ç›¸å…³
     private Map<String, FileTransferInfo> pendingFileTransfers = new HashMap<>(); 
 
-    // Ö÷·½·¨
+    // ä¸»æ–¹æ³•
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Client().initUI());
     }
 
-    // ³õÊ¼»¯½çÃæ
+    // åˆå§‹åŒ–ç•Œé¢
     private void initUI() {
-        // ´´½¨Ö÷´°¿Ú
-        frame = new JFrame("ÁÄÌì¿Í»§¶Ë");
+        // åˆ›å»ºä¸»çª—å£
+        frame = new JFrame("èŠå¤©å®¢æˆ·ç«¯");
         frame.setSize(600, 400);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-        // ´´½¨ÁÄÌìÇøÓò
+        // åˆ›å»ºèŠå¤©åŒºåŸŸ
         chatArea = new JTextArea();
         chatArea.setEditable(false);
         chatArea.setLineWrap(true);
@@ -63,33 +63,33 @@ public class Client {
         JScrollPane chatScrollPane = new JScrollPane(chatArea);
         chatScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        // ´´½¨ÓÃ»§ÁĞ±íºÍÈº×éÁĞ±í
+        // åˆ›å»ºç”¨æˆ·åˆ—è¡¨å’Œç¾¤ç»„åˆ—è¡¨
         userListModel = new DefaultListModel<>();
         groupListModel = new DefaultListModel<>();
 
-        // ×é×°Ö÷½çÃæ
+        // ç»„è£…ä¸»ç•Œé¢
         frame.add(chatScrollPane, BorderLayout.CENTER);
         frame.add(MainPanel("right"), BorderLayout.EAST);
         frame.add(MainPanel("bottom"), BorderLayout.SOUTH);
 
-        // ÏÔÊ¾µÇÂ¼¶Ô»°¿ò
+        // æ˜¾ç¤ºç™»å½•å¯¹è¯æ¡†
         LoginPanel();
     }
 
-    // µÇÂ¼¶Ô»°¿ò
+    // ç™»å½•å¯¹è¯æ¡†
     private void LoginPanel() {
-        JDialog loginDialog = new JDialog(frame, "µÇÂ¼", true);
+        JDialog loginDialog = new JDialog(frame, "ç™»å½•", true);
         loginDialog.setSize(200, 160);
         
         loginDialog.setLayout(new BorderLayout(10, 10));
         
-        // ´´½¨ÊäÈëÃæ°å
+        // åˆ›å»ºè¾“å…¥é¢æ¿
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 5, 5));
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
             
         JTextField serverField = new JTextField(serverAddress);
         JTextField usernameField = new JTextField();
-        JButton loginButton = new JButton("µÇÂ¼");
+        JButton loginButton = new JButton("ç™»å½•");
             
         loginButton.addActionListener(e -> {
             serverAddress = serverField.getText().trim();
@@ -100,22 +100,22 @@ public class Client {
                 loginDialog.dispose();
                 connectToServer();
             } else {
-                JOptionPane.showMessageDialog(loginDialog, "ÓÃ»§Ãû²»ÄÜÎª¿Õ£¡");
+                JOptionPane.showMessageDialog(loginDialog, "ç”¨æˆ·åä¸èƒ½ä¸ºç©ºï¼");
             }
         });
         
-        // Ìí¼ÓÊäÈë×Ö¶Îµ½ÊäÈëÃæ°å
-        inputPanel.add(new JLabel("·şÎñÆ÷IPµØÖ·:"));
+        // æ·»åŠ è¾“å…¥å­—æ®µåˆ°è¾“å…¥é¢æ¿
+        inputPanel.add(new JLabel("æœåŠ¡å™¨IPåœ°å€:"));
         inputPanel.add(serverField);
-        inputPanel.add(new JLabel("ÓÃ»§ÃûID:"));
+        inputPanel.add(new JLabel("ç”¨æˆ·åID:"));
         inputPanel.add(usernameField);
      
-        // ´´½¨°´Å¥Ãæ°å²¢¾ÓÖĞ
+        // åˆ›å»ºæŒ‰é’®é¢æ¿å¹¶å±…ä¸­
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(loginButton);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
-        // ½«Ãæ°åÌí¼Óµ½¶Ô»°¿ò
+        // å°†é¢æ¿æ·»åŠ åˆ°å¯¹è¯æ¡†
         loginDialog.add(inputPanel, BorderLayout.CENTER);
         loginDialog.add(buttonPanel, BorderLayout.SOUTH);
         
@@ -123,13 +123,13 @@ public class Client {
         loginDialog.setVisible(true);
     }
 
-    // ´´½¨Ö÷ÁÄÌìÃæ°å
+    // åˆ›å»ºä¸»èŠå¤©é¢æ¿
     private JPanel MainPanel(String panelType) {
         if (panelType.equals("right")) {
-            // ´´½¨ÓÒ²àÃæ°å
+            // åˆ›å»ºå³ä¾§é¢æ¿
             JPanel rightContainer = new JPanel(new BorderLayout());
             
-            // ´´½¨ÓÃ»§ÁĞ±í
+            // åˆ›å»ºç”¨æˆ·åˆ—è¡¨
             userList = new JList<>(userListModel);
             userList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             userList.addMouseListener(new MouseAdapter() {
@@ -146,7 +146,7 @@ public class Client {
             JScrollPane userScrollPane = new JScrollPane(userList);
             userScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            // ´´½¨Èº×éÁĞ±í
+            // åˆ›å»ºç¾¤ç»„åˆ—è¡¨
             groupList = new JList<>(groupListModel);
             groupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             groupList.addMouseListener(new MouseAdapter() {
@@ -160,35 +160,35 @@ public class Client {
             JScrollPane groupScrollPane = new JScrollPane(groupList);
             groupScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            // ´´½¨´´½¨Èº×é°´Å¥
-            JButton createGroupButton = new JButton("´´½¨Èº×é");
+            // åˆ›å»ºåˆ›å»ºç¾¤ç»„æŒ‰é’®
+            JButton createGroupButton = new JButton("åˆ›å»ºç¾¤ç»„");
             createGroupButton.addActionListener(e -> createGroupPanel());
             JPanel createGroupPanel = new JPanel(new BorderLayout());
             createGroupPanel.add(groupScrollPane, BorderLayout.CENTER);
             createGroupPanel.add(createGroupButton, BorderLayout.SOUTH);
             createGroupPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            // ´´½¨¹«¹²ÁÄÌì°´Å¥Ãæ°å
+            // åˆ›å»ºå…¬å…±èŠå¤©æŒ‰é’®é¢æ¿
             JPanel publicChatPanel = new JPanel(new BorderLayout());
-            JButton publicChatButton = new JButton("¹«¹²¹ã²¥");
+            JButton publicChatButton = new JButton("å…¬å…±å¹¿æ’­");
             publicChatButton.addActionListener(e -> switchChatMode("PUBLIC", ""));
             publicChatPanel.add(publicChatButton, BorderLayout.CENTER);
             publicChatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            // ´´½¨ÓÒ²àÑ¡Ïî¿¨Ãæ°å
+            // åˆ›å»ºå³ä¾§é€‰é¡¹å¡é¢æ¿
             rightPanel = new JTabbedPane();
-            rightPanel.addTab("ÔÚÏßÓÃ»§", userScrollPane);
-            rightPanel.addTab("¹«¹²ÁÄÌì", publicChatPanel);
-            rightPanel.addTab("Èº×éÁĞ±í", createGroupPanel);
+            rightPanel.addTab("åœ¨çº¿ç”¨æˆ·", userScrollPane);
+            rightPanel.addTab("å…¬å…±èŠå¤©", publicChatPanel);
+            rightPanel.addTab("ç¾¤ç»„åˆ—è¡¨", createGroupPanel);
 
-            // ÉèÖÃÑ¡Ïî¿¨ÇĞ»»ÊÂ¼ş
+            // è®¾ç½®é€‰é¡¹å¡åˆ‡æ¢äº‹ä»¶
             rightPanel.addChangeListener(e -> {
-                if (rightPanel.getSelectedIndex() == 1) { // ¹«¹²ÁÄÌìÑ¡Ïî¿¨
+                if (rightPanel.getSelectedIndex() == 1) { // å…¬å…±èŠå¤©é€‰é¡¹å¡
                     switchChatMode("PUBLIC", "");
                 }
             });
 
-            // ÉèÖÃÓÒ²àÃæ°å´óĞ¡
+            // è®¾ç½®å³ä¾§é¢æ¿å¤§å°
             rightContainer.add(rightPanel, BorderLayout.CENTER);
             rightContainer.setPreferredSize(new Dimension(250, frame.getHeight()));
             rightContainer.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -196,53 +196,53 @@ public class Client {
             return rightContainer;
             
         } else if (panelType.equals("bottom")) {
-            // ´´½¨µ×²¿Ãæ°å
+            // åˆ›å»ºåº•éƒ¨é¢æ¿
             JPanel bottomPanel = new JPanel(new BorderLayout());
 
-            // ´´½¨ÏûÏ¢ÊäÈë¿ò
+            // åˆ›å»ºæ¶ˆæ¯è¾“å…¥æ¡†
             messageField = new JTextField();
             messageField.addActionListener(e -> sendMessage());
 
-            // ´´½¨·¢ËÍ°´Å¥ºÍÎÄ¼ş°´Å¥
-            sendButton = new JButton("·¢ËÍ");
+            // åˆ›å»ºå‘é€æŒ‰é’®å’Œæ–‡ä»¶æŒ‰é’®
+            sendButton = new JButton("å‘é€");
             sendButton.addActionListener(e -> sendMessage());
-            fileButton = new JButton("·¢ËÍÎÄ¼ş");
+            fileButton = new JButton("å‘é€æ–‡ä»¶");
             fileButton.addActionListener(e -> sendFile("REQUEST"));
-            fileButton.setEnabled(false); // ³õÊ¼½ûÓÃ£¬Ö»ÓĞË½ÁÄÊ±²ÅÆôÓÃ
+            fileButton.setEnabled(false); // åˆå§‹ç¦ç”¨ï¼Œåªæœ‰ç§èŠæ—¶æ‰å¯ç”¨
 
-            // ×é×°°´Å¥Ãæ°å
+            // ç»„è£…æŒ‰é’®é¢æ¿
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             buttonPanel.add(fileButton);
             buttonPanel.add(sendButton);
 
-            // ×é×°µ×²¿Ãæ°å
+            // ç»„è£…åº•éƒ¨é¢æ¿
             bottomPanel.add(messageField, BorderLayout.CENTER);
             bottomPanel.add(buttonPanel, BorderLayout.EAST);
 
             return bottomPanel;
         }
-        return new JPanel(); // Ä¬ÈÏ·µ»Ø¿ÕÃæ°å
+        return new JPanel(); // é»˜è®¤è¿”å›ç©ºé¢æ¿
     }
 
-    // ÏÔÊ¾µ¯³ö´´½¨Èº×é´°¿Ú
+    // æ˜¾ç¤ºå¼¹å‡ºåˆ›å»ºç¾¤ç»„çª—å£
     private void createGroupPanel() {
-        JDialog dialog = new JDialog(frame, "´´½¨Èº×é", true);
+        JDialog dialog = new JDialog(frame, "åˆ›å»ºç¾¤ç»„", true);
         dialog.setSize(200, 300);
         dialog.setLayout(new BorderLayout());
 
         JTextField nameField = new JTextField();
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(new JLabel("Èº×éÃû³Æ:"), BorderLayout.WEST);
+        topPanel.add(new JLabel("ç¾¤ç»„åç§°:"), BorderLayout.WEST);
         topPanel.add(nameField, BorderLayout.CENTER);
 
-        // ´´½¨ÓÃ»§Ñ¡ÔñÁĞ±í
+        // åˆ›å»ºç”¨æˆ·é€‰æ‹©åˆ—è¡¨
         JList<String> memberList = new JList<>(userListModel);
         memberList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         JPanel buttonPanel = getJPanel(nameField, dialog, memberList);
 
         dialog.add(topPanel, BorderLayout.NORTH);
-        dialog.add(new JLabel("Ñ¡Ôñ³ÉÔ±:"), BorderLayout.WEST);
+        dialog.add(new JLabel("é€‰æ‹©æˆå‘˜:"), BorderLayout.WEST);
         dialog.add(new JScrollPane(memberList), BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -251,34 +251,34 @@ public class Client {
     }
 
     private JPanel getJPanel(JTextField nameField, JDialog dialog, JList<String> memberList) {
-        JButton createButton = new JButton("´´½¨");
+        JButton createButton = new JButton("åˆ›å»º");
         createButton.addActionListener(e -> {
             String groupName = nameField.getText().trim();
             if (groupName.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Èº×éÃû³Æ²»ÄÜÎª¿Õ£¡");
+                JOptionPane.showMessageDialog(dialog, "ç¾¤ç»„åç§°ä¸èƒ½ä¸ºç©ºï¼");
                 return;
             }
 
             List<String> selectedMembers = memberList.getSelectedValuesList();
             if (selectedMembers.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "ÇëÖÁÉÙÑ¡ÔñÒ»¸ö³ÉÔ±£¡");
+                JOptionPane.showMessageDialog(dialog, "è¯·è‡³å°‘é€‰æ‹©ä¸€ä¸ªæˆå‘˜ï¼");
                 return;
             }
 
-            // ¹¹½¨³ÉÔ±ÁĞ±í×Ö·û´®
+            // æ„å»ºæˆå‘˜åˆ—è¡¨å­—ç¬¦ä¸²
             StringBuilder memberStr = new StringBuilder();
             for (String member : selectedMembers) {
-                if (!member.equals(username)) { // ÅÅ³ı×Ô¼º
+                if (!member.equals(username)) { // æ’é™¤è‡ªå·±
                     memberStr.append(member).append(",");
                 }
             }
 
-            // ·¢ËÍ´´½¨Èº×éÇëÇó
+            // å‘é€åˆ›å»ºç¾¤ç»„è¯·æ±‚
             out.println("CREATE_GROUP:" + groupName + ":" + memberStr.toString());
             dialog.dispose();
         });
 
-        JButton cancelButton = new JButton("È¡Ïû");
+        JButton cancelButton = new JButton("å–æ¶ˆ");
         cancelButton.addActionListener(e -> dialog.dispose());
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -287,32 +287,32 @@ public class Client {
         return buttonPanel;
     }
 
-    // Á¬½Óµ½·şÎñÆ÷
+    // è¿æ¥åˆ°æœåŠ¡å™¨
     private void connectToServer() {
         try {
             socket = new Socket(serverAddress, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()), 8192);
             out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()), 8192), true);
             objectOut = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream(), 8192));
-            objectOut.flush(); // È·±£¶ÔÏóÍ·ĞÅÏ¢±»Ğ´Èë
+            objectOut.flush(); // ç¡®ä¿å¯¹è±¡å¤´ä¿¡æ¯è¢«å†™å…¥
             objectIn = new ObjectInputStream(new BufferedInputStream(socket.getInputStream(), 8192));
 
-            // Ö÷¶¯·¢ËÍÓÃ»§Ãûµ½·şÎñÆ÷
+            // ä¸»åŠ¨å‘é€ç”¨æˆ·ååˆ°æœåŠ¡å™¨
             out.println("LOGIN:" + username);
 
-            // Æô¶¯½ÓÊÕÏûÏ¢µÄÏß³Ì
+            // å¯åŠ¨æ¥æ”¶æ¶ˆæ¯çš„çº¿ç¨‹
             new Thread(new IncomingReader()).start();
 
-            // ÉèÖÃ´°¿Ú±êÌâ
-            frame.setTitle("ÁÄÌì¿Í»§¶Ë - " + username + " (" + serverAddress + ":" + port + ")");
+            // è®¾ç½®çª—å£æ ‡é¢˜
+            frame.setTitle("èŠå¤©å®¢æˆ·ç«¯ - " + username + " (" + serverAddress + ":" + port + ")");
             frame.setVisible(true);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(frame, "ÎŞ·¨Á¬½Óµ½·şÎñÆ÷: " + e.getMessage());
+            JOptionPane.showMessageDialog(frame, "æ— æ³•è¿æ¥åˆ°æœåŠ¡å™¨: " + e.getMessage());
             System.exit(1);
         }
     }
 
-    // ·¢ËÍÏûÏ¢
+    // å‘é€æ¶ˆæ¯
     private void sendMessage() {
         String message = messageField.getText();
         if (message.isEmpty()) return;
@@ -331,23 +331,23 @@ public class Client {
         messageField.setText("");
     }
 
-    // ÇĞ»»ÁÄÌìÄ£Ê½
+    // åˆ‡æ¢èŠå¤©æ¨¡å¼
     private void switchChatMode(String mode, String target) {
         currentChatMode = mode;
         currentChatTarget = target;
         boolean enableFileButton = mode.equals("PRIVATE");
 
-        // ¸üĞÂÎÄ¼ş°´Å¥×´Ì¬
+        // æ›´æ–°æ–‡ä»¶æŒ‰é’®çŠ¶æ€
         fileButton.setEnabled(enableFileButton);
 
-        // ÌáÊ¾µ±Ç°ÁÄÌìÄ£Ê½
-        String modeText = mode.equals("PUBLIC") ? "¹«¹²ÁÄÌì" :
-                mode.equals("PRIVATE") ? "Óë " + target + " µÄË½ÁÄ" :
-                        "Èº×é " + target + " ÁÄÌì";
-        chatArea.append("ÏµÍ³: ÒÑÇĞ»»µ½" + modeText + "\n");
+        // æç¤ºå½“å‰èŠå¤©æ¨¡å¼
+        String modeText = mode.equals("PUBLIC") ? "å…¬å…±èŠå¤©" :
+                mode.equals("PRIVATE") ? "ä¸ " + target + " çš„ç§èŠ" :
+                        "ç¾¤ç»„ " + target + " èŠå¤©";
+        chatArea.append("ç³»ç»Ÿ: å·²åˆ‡æ¢åˆ°" + modeText + "\n");
     }
 
-    // ½ÓÊÕ·şÎñÆ÷ÏûÏ¢µÄÏß³Ì
+    // æ¥æ”¶æœåŠ¡å™¨æ¶ˆæ¯çš„çº¿ç¨‹
     private class IncomingReader implements Runnable {
         @Override
         public void run() {
@@ -357,21 +357,21 @@ public class Client {
                     processServerMessage(message);
                 }
             } catch (IOException e) {
-                chatArea.append("ÏµÍ³: Óë·şÎñÆ÷µÄÁ¬½ÓÒÑ¶Ï¿ª: " + e.getMessage() + "\n");
+                chatArea.append("ç³»ç»Ÿ: ä¸æœåŠ¡å™¨çš„è¿æ¥å·²æ–­å¼€: " + e.getMessage() + "\n");
             }
         }
 
-        // ´¦Àí·şÎñÆ÷ÏûÏ¢
+        // å¤„ç†æœåŠ¡å™¨æ¶ˆæ¯
         private void processServerMessage(String message) throws IOException {
             if (message.startsWith("LOGIN_REQUEST")) {
-                out.println("LOGIN:" + username);  // ĞŞ¸ÄÎªÍ³Ò»µÄµÇÂ¼ÏûÏ¢¸ñÊ½
+                out.println("LOGIN:" + username);  // ä¿®æ”¹ä¸ºç»Ÿä¸€çš„ç™»å½•æ¶ˆæ¯æ ¼å¼
             } else if (message.startsWith("LOGIN_FAILED:")) {
                 String errorMsg = message.substring("LOGIN_FAILED:".length());
                 JOptionPane.showMessageDialog(frame, errorMsg);
                 socket.close();
                 System.exit(1);
             } else if (message.startsWith("LOGIN_SUCCESS")) {
-                chatArea.append("ÏµÍ³: µÇÂ¼³É¹¦£¡\n");
+                chatArea.append("ç³»ç»Ÿ: ç™»å½•æˆåŠŸï¼\n");
             } else if (message.startsWith("USER_LIST:")) {
                 updateList("USER", message.substring("USER_LIST:".length()));
             } else if (message.startsWith("GROUP_LIST:")) {
@@ -379,22 +379,22 @@ public class Client {
             } else if (message.startsWith("BROADCAST:")) {
                 String[] parts = message.split(":", 3);
                 if (parts.length == 3) {
-                    chatArea.append("[¹«¹²] " + parts[1] + ": " + parts[2] + "\n");
+                    chatArea.append("[å…¬å…±] " + parts[1] + ": " + parts[2] + "\n");
                 }
             } else if (message.startsWith("PRIVATE:")) {
                 String[] parts = message.split(":", 3);
                 if (parts.length == 3) {
-                    chatArea.append("[Ë½ÁÄ] " + parts[1] + ": " + parts[2] + "\n");
+                    chatArea.append("[ç§èŠ] " + parts[1] + ": " + parts[2] + "\n");
                 }
             } else if (message.startsWith("PRIVATE_SENT:")) {
                 String[] parts = message.split(":", 3);
                 if (parts.length == 3) {
-                    chatArea.append("[Ë½ÁÄ] ÎÒ -> " + parts[1] + ": " + parts[2] + "\n");
+                    chatArea.append("[ç§èŠ] æˆ‘ -> " + parts[1] + ": " + parts[2] + "\n");
                 }
             } else if (message.startsWith("GROUP:")) {
                 String[] parts = message.split(":", 4);
                 if (parts.length == 4) {
-                    chatArea.append("[ÈºÁÄ:" + parts[1] + "] " + parts[2] + ": " + parts[3] + "\n");
+                    chatArea.append("[ç¾¤èŠ:" + parts[1] + "] " + parts[2] + ": " + parts[3] + "\n");
                 }
             } else if (message.startsWith("SYSTEM:")) {
                 chatArea.append(message.substring("SYSTEM:".length()) + "\n");
@@ -406,12 +406,12 @@ public class Client {
             } else if (message.startsWith("FILE_ACCEPT:")) {
                 String[] parts = message.split(":", 3);
                 if (parts.length == 3) {
-                    chatArea.append("ÏµÍ³: " + parts[1] + " ÒÑ½ÓÊÜÎÄ¼ş´«Êä: " + parts[2] + "\n");
+                    chatArea.append("ç³»ç»Ÿ: " + parts[1] + " å·²æ¥å—æ–‡ä»¶ä¼ è¾“: " + parts[2] + "\n");
                 }
             } else if (message.startsWith("FILE_REJECT:")) {
                 String[] parts = message.split(":", 3);
                 if (parts.length == 3) {
-                    chatArea.append("ÏµÍ³: " + parts[1] + " ÒÑ¾Ü¾øÎÄ¼ş´«Êä: " + parts[2] + "\n");
+                    chatArea.append("ç³»ç»Ÿ: " + parts[1] + " å·²æ‹’ç»æ–‡ä»¶ä¼ è¾“: " + parts[2] + "\n");
                     pendingFileTransfers.remove(parts[2]);
                 }
             } else if (message.startsWith("FILE_TRANSFER_START:")) {
@@ -422,17 +422,17 @@ public class Client {
             } else if (message.startsWith("FILE_READY:")) {
                 String[] parts = message.split(":", 4);
                 if (parts.length == 4) {
-                    // Í¨Öª·şÎñÆ÷¿ªÊ¼´«Êä
+                    // é€šçŸ¥æœåŠ¡å™¨å¼€å§‹ä¼ è¾“
                     out.println("FILE_TRANSFER_START:" + parts[1] + ":" + parts[2] + ":" + parts[3]);
                 }
             }
         }
     }
 
-    // ¸üĞÂÓÃ»§ºÍÈºÁĞ±í
+    // æ›´æ–°ç”¨æˆ·å’Œç¾¤åˆ—è¡¨
     private void updateList(String listType, String listStr) {
         if (listType.equals("USER")) {
-            // ¸üĞÂÓÃ»§ÁĞ±í
+            // æ›´æ–°ç”¨æˆ·åˆ—è¡¨
             userListModel.clear();
             String[] users = listStr.split(",");
             for (String user : users) {
@@ -441,7 +441,7 @@ public class Client {
                 }
             }
         } else if (listType.equals("GROUP")) {
-            // ¸üĞÂÈº×éÁĞ±í
+            // æ›´æ–°ç¾¤ç»„åˆ—è¡¨
             groupListModel.clear();
             if (listStr.isEmpty()) return;
 
@@ -452,10 +452,10 @@ public class Client {
                 String[] parts = group.split(":", 2);
                 if (parts.length <= 0 || parts[0].isEmpty()) continue;
 
-                // ¼ì²éÈº×é³ÉÔ±ĞÅÏ¢
+                // æ£€æŸ¥ç¾¤ç»„æˆå‘˜ä¿¡æ¯
                 if (parts.length > 1) {
                     String[] members = parts[1].split(",");
-                    // Ö»Ìí¼Óµ±Ç°ÓÃ»§ÊÇ³ÉÔ±µÄÈº×é
+                    // åªæ·»åŠ å½“å‰ç”¨æˆ·æ˜¯æˆå‘˜çš„ç¾¤ç»„
                     for (String member : members) {
                         if (member.trim().equals(username)) {
                             groupListModel.addElement(parts[0]);
@@ -467,7 +467,7 @@ public class Client {
         }
     }
 
-    // ÎÄ¼ş´«ÊäĞÅÏ¢Àà
+    // æ–‡ä»¶ä¼ è¾“ä¿¡æ¯ç±»
     private class FileTransferInfo {
         File file;
         String receiver;
@@ -478,12 +478,12 @@ public class Client {
         }
     }
 
-    // ´¦ÀíÎÄ¼ş´«Êä
+    // å¤„ç†æ–‡ä»¶ä¼ è¾“
     private void sendFile(String action, Object... params) {
         if (action.equals("REQUEST")) {
-            // ·¢ËÍÎÄ¼şÇëÇó
+            // å‘é€æ–‡ä»¶è¯·æ±‚
             if (!currentChatMode.equals("PRIVATE")) {
-                JOptionPane.showMessageDialog(frame, "Ö»ÄÜÔÚË½ÁÄÖĞ·¢ËÍÎÄ¼ş£¡");
+                JOptionPane.showMessageDialog(frame, "åªèƒ½åœ¨ç§èŠä¸­å‘é€æ–‡ä»¶ï¼");
                 return;
             }
 
@@ -494,15 +494,15 @@ public class Client {
             String filename = selectedFile.getName();
             long filesize = selectedFile.length();
 
-            // ·¢ËÍÎÄ¼ş´«ÊäÇëÇó
+            // å‘é€æ–‡ä»¶ä¼ è¾“è¯·æ±‚
             out.println("FILE_REQUEST:" + currentChatTarget + ":" + filename + ":" + filesize);
 
-            // ±£´æÎÄ¼şĞÅÏ¢£¬µÈ´ı¶Ô·½½ÓÊÜ
+            // ä¿å­˜æ–‡ä»¶ä¿¡æ¯ï¼Œç­‰å¾…å¯¹æ–¹æ¥å—
             pendingFileTransfers.put(filename, new FileTransferInfo(selectedFile, currentChatTarget));
 
-            chatArea.append("ÏµÍ³: ÒÑÏò " + currentChatTarget + " ·¢ËÍÎÄ¼ş´«ÊäÇëÇó: " + filename + " (" + filesize + " ×Ö½Ú)\n");
+            chatArea.append("ç³»ç»Ÿ: å·²å‘ " + currentChatTarget + " å‘é€æ–‡ä»¶ä¼ è¾“è¯·æ±‚: " + filename + " (" + filesize + " å­—èŠ‚)\n");
         } else if (action.equals("SEND")) {
-            // ·¢ËÍÎÄ¼şÊı¾İ
+            // å‘é€æ–‡ä»¶æ•°æ®
             String receiver = (String) params[0];
             String filename = (String) params[1];
             String receiverIP = (String) params[2];
@@ -513,18 +513,18 @@ public class Client {
 
             try {
                 File file = fileInfo.file;
-                chatArea.append("ÏµÍ³: ÕıÔÚ·¢ËÍÎÄ¼ş: " + filename + " ¸ø " + receiver + "\n");
+                chatArea.append("ç³»ç»Ÿ: æ­£åœ¨å‘é€æ–‡ä»¶: " + filename + " ç»™ " + receiver + "\n");
 
-                // ´´½¨×¨ÓÃÓÚÎÄ¼ş´«ÊäµÄSocketÁ¬½Ó
+                // åˆ›å»ºä¸“ç”¨äºæ–‡ä»¶ä¼ è¾“çš„Socketè¿æ¥
                 Socket fileSocket = new Socket(receiverIP, receiverPort);
                 BufferedInputStream fileIn = new BufferedInputStream(new FileInputStream(file));
                 DataOutputStream dataOut = new DataOutputStream(new BufferedOutputStream(fileSocket.getOutputStream()));
 
-                // ·¢ËÍÎÄ¼ş´óĞ¡
+                // å‘é€æ–‡ä»¶å¤§å°
                 dataOut.writeLong(file.length());
 
-                // ·¢ËÍÎÄ¼şÄÚÈİ
-                byte[] buffer = new byte[8192]; // Ôö´ó»º³åÇø´óĞ¡
+                // å‘é€æ–‡ä»¶å†…å®¹
+                byte[] buffer = new byte[8192]; // å¢å¤§ç¼“å†²åŒºå¤§å°
                 int bytesRead;
 
                 while ((bytesRead = fileIn.read(buffer)) != -1) {
@@ -536,69 +536,69 @@ public class Client {
                 dataOut.close();
                 fileSocket.close();
 
-                chatArea.append("ÏµÍ³: ÎÄ¼ş·¢ËÍÍê³É: " + filename + "\n");
+                chatArea.append("ç³»ç»Ÿ: æ–‡ä»¶å‘é€å®Œæˆ: " + filename + "\n");
                 pendingFileTransfers.remove(filename);
 
             } catch (Exception e) {
-                chatArea.append("ÏµÍ³: ÎÄ¼ş·¢ËÍÊ§°Ü: " + e.getMessage() + "\n");
+                chatArea.append("ç³»ç»Ÿ: æ–‡ä»¶å‘é€å¤±è´¥: " + e.getMessage() + "\n");
                 e.printStackTrace();
             }
         }
     }
 
-    // ´¦ÀíÎÄ¼ş´«ÊäÇëÇó
+    // å¤„ç†æ–‡ä»¶ä¼ è¾“è¯·æ±‚
     private void handleFileRequest(String sender, String filename, long filesize) {
         int option = JOptionPane.showConfirmDialog(
                 frame,
-                sender + " ÏëÒª·¢ËÍÎÄ¼ş: " + filename + " (" + filesize + " ×Ö½Ú)\nÊÇ·ñ½ÓÊÕ£¿",
-                "ÎÄ¼ş´«ÊäÇëÇó",
+                sender + " æƒ³è¦å‘é€æ–‡ä»¶: " + filename + " (" + filesize + " å­—èŠ‚)\næ˜¯å¦æ¥æ”¶ï¼Ÿ",
+                "æ–‡ä»¶ä¼ è¾“è¯·æ±‚",
                 JOptionPane.YES_NO_OPTION
         );
 
         if (option != JOptionPane.YES_OPTION) {
-            // ¾Ü¾øÎÄ¼ş´«Êä
+            // æ‹’ç»æ–‡ä»¶ä¼ è¾“
             out.println("FILE_REJECT:" + sender + ":" + filename);
             return;
         }
 
-        // Ñ¡Ôñ±£´æÎ»ÖÃ
+        // é€‰æ‹©ä¿å­˜ä½ç½®
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setSelectedFile(new File(filename));
         if (fileChooser.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) {
-            // ÓÃ»§È¡ÏûÁË±£´æ¶Ô»°¿ò
+            // ç”¨æˆ·å–æ¶ˆäº†ä¿å­˜å¯¹è¯æ¡†
             out.println("FILE_REJECT:" + sender + ":" + filename);
             return;
         }
 
-        // ½ÓÊÜÎÄ¼ş´«Êä
+        // æ¥å—æ–‡ä»¶ä¼ è¾“
         out.println("FILE_ACCEPT:" + sender + ":" + filename);
 
-        // Æô¶¯ÎÄ¼ş½ÓÊÕÏß³Ì
+        // å¯åŠ¨æ–‡ä»¶æ¥æ”¶çº¿ç¨‹
         new Thread(() -> receiveFile(sender, filename, fileChooser.getSelectedFile())).start();
     }
 
-    // ½ÓÊÕÎÄ¼ş
+    // æ¥æ”¶æ–‡ä»¶
     private void receiveFile(String sender, String filename, File saveFile) {
         try {
-            chatArea.append("ÏµÍ³: ÕıÔÚ½ÓÊÕÀ´×Ô " + sender + " µÄÎÄ¼ş: " + filename + "\n");
+            chatArea.append("ç³»ç»Ÿ: æ­£åœ¨æ¥æ”¶æ¥è‡ª " + sender + " çš„æ–‡ä»¶: " + filename + "\n");
 
-            // ´´½¨ÎÄ¼ş·şÎñÆ÷SocketµÈ´ı·¢ËÍ·½Á¬½Ó
+            // åˆ›å»ºæ–‡ä»¶æœåŠ¡å™¨Socketç­‰å¾…å‘é€æ–¹è¿æ¥
             ServerSocket fileServerSocket = new ServerSocket(0);
             int filePort = fileServerSocket.getLocalPort();
 
-            // ¸æÖª·şÎñÆ÷ÎÒÃÇ×¼±¸ºÃ½ÓÊÕÎÄ¼ş£¬²¢Ìá¹©¶Ë¿ÚĞÅÏ¢
+            // å‘ŠçŸ¥æœåŠ¡å™¨æˆ‘ä»¬å‡†å¤‡å¥½æ¥æ”¶æ–‡ä»¶ï¼Œå¹¶æä¾›ç«¯å£ä¿¡æ¯
             out.println("FILE_READY:" + sender + ":" + filename + ":" + filePort);
 
-            // µÈ´ı·¢ËÍ·½Á¬½Ó
+            // ç­‰å¾…å‘é€æ–¹è¿æ¥
             Socket fileSocket = fileServerSocket.accept();
             DataInputStream dataIn = new DataInputStream(new BufferedInputStream(fileSocket.getInputStream()));
             BufferedOutputStream fileOut = new BufferedOutputStream(new FileOutputStream(saveFile));
 
-            // ¶ÁÈ¡ÎÄ¼ş´óĞ¡
+            // è¯»å–æ–‡ä»¶å¤§å°
             long fileSize = dataIn.readLong();
 
-            // ¶ÁÈ¡ÎÄ¼şÄÚÈİ
-            byte[] buffer = new byte[8192]; // Ôö´ó»º³åÇø´óĞ¡
+            // è¯»å–æ–‡ä»¶å†…å®¹
+            byte[] buffer = new byte[8192]; // å¢å¤§ç¼“å†²åŒºå¤§å°
             int bytesRead;
             long totalBytesRead = 0;
 
@@ -608,16 +608,16 @@ public class Client {
                 totalBytesRead += bytesRead;
             }
 
-            fileOut.flush(); // È·±£ËùÓĞÊı¾İ¶¼Ğ´ÈëÎÄ¼ş
+            fileOut.flush(); // ç¡®ä¿æ‰€æœ‰æ•°æ®éƒ½å†™å…¥æ–‡ä»¶
             fileOut.close();
             dataIn.close();
             fileSocket.close();
             fileServerSocket.close();
 
-            chatArea.append("ÏµÍ³: ÎÄ¼ş½ÓÊÕÍê³É: " + saveFile.getAbsolutePath() + "\n");
+            chatArea.append("ç³»ç»Ÿ: æ–‡ä»¶æ¥æ”¶å®Œæˆ: " + saveFile.getAbsolutePath() + "\n");
 
         } catch (Exception e) {
-            chatArea.append("ÏµÍ³: ÎÄ¼ş½ÓÊÕÊ§°Ü: " + e.getMessage() + "\n");
+            chatArea.append("ç³»ç»Ÿ: æ–‡ä»¶æ¥æ”¶å¤±è´¥: " + e.getMessage() + "\n");
             e.printStackTrace();
         }
     }
